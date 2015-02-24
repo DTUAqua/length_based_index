@@ -60,7 +60,7 @@ Type objective_function<Type>::operator() ()
 		 exp(predictor(i) +
 		     etamean(sizeGroup(i), time(i)) +
 		     eta(position(i), time(i), sizeGroup(i)) +
-		     etanug(haulid(i))
+		     etanug(sizeGroup(i), haulid(i))
 		     ),
 		 true);
   }
@@ -74,7 +74,7 @@ Type objective_function<Type>::operator() ()
       logindex(i,j) = etamean(i, j) + log( exp(vector<Type>(eta.col(i).col(j))).sum() );
     }
   }
-  //ADREPORT(logindex);
+  ADREPORT(logindex);
   REPORT(logindex);
 
   return nll;
