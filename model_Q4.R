@@ -74,8 +74,29 @@ system.time(opt <- nlminb(obj$par, obj$fn, obj$gr))
 ## summary(sdr,"fixed")
 ## summary(sdr,"report")
 
-logindex <- obj$report()$logindex
-rownames(logindex) <- levels(d$sizeGroup)
-colnames(logindex) <- levels(d$time)
+## logindex <- obj$report()$logindex
+## rownames(logindex) <- levels(d$sizeGroup)
+## colnames(logindex) <- levels(d$time)
+## save(logindex,file="result_Q4.RData")
+system.time(sdr <- sdreport(obj))
+save(sdr,file="sdr_Q4.RData")
 
-save(logindex,file="result_Q4.RData")
+system.time(sdr2 <- sdreport(obj,bias.correct=TRUE,hessian.fixed=solve(sdr$cov.fixed)))
+mat <- summary(sdr2,"report")
+rownames(mat) <- NULL
+df <- as.data.frame(mat)
+df$unbiased <- sdr2$unbiased$value
+df <- cbind(df,
+            expand.grid(sizeGroup=levels(d$sizeGroup),time=levels(d$time))
+            )
+save(df,file="df_Q4.RData")
+xtabs(Estimate ~ sizeGroup + time,data=df)
+x1 <- xtabs(N ~ sizeGroup + time,data=d) / xtabs( ~ sizeGroup + time,data=d)
+x2 <- xtabs(Estimate ~ sizeGroup + time,data=df)
+x3 <- xtabs(unbiased ~ sizeGroup + time,data=df)
+pdf("plotQ4.pdf")
+matplot(x1,type="l",main="Raw average")
+matplot(x2,type="l",main="Posterior mode")
+matplot(x3,type="l",main="Posterior mean")
+dev.off()
+
