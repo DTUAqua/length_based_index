@@ -66,16 +66,16 @@ Type objective_function<Type>::operator() ()
   }
 
   // REPORT
-  matrix<Type> logindex(NLEVELS(sizeGroup), NLEVELS(time));
-  for(int i=0; i<logindex.rows(); i++){
-    for(int j=0; j<logindex.cols(); j++){
+  matrix<Type> index(NLEVELS(sizeGroup), NLEVELS(time));
+  for(int i=0; i<index.rows(); i++){
+    for(int j=0; j<index.cols(); j++){
       //etamean(i, j) +
       //eta(... , j, i)
-      logindex(i,j) = etamean(i, j) + log( exp(vector<Type>(eta.col(i).col(j))).sum() );
+      index(i,j) = exp( etamean(i, j) ) * exp(vector<Type>(eta.col(i).col(j))).sum();
     }
   }
-  ADREPORT(logindex);
-  REPORT(logindex);
+  ADREPORT(index);
+  REPORT(index);
 
   return nll;
 

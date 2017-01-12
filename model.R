@@ -4,10 +4,12 @@ library(lgc)
 grid <- gridConstruct(d,km=50)
 ## plot(grid)
 ## map("worldHires",add=TRUE)
-d <- addSpectrum(d,cm.breaks=seq(4,120,by=2))
+##d <- addSpectrum(d,cm.breaks=seq(4,120,by=2))
+d <- addSpectrum(d,cm.breaks=seq(4,120,by=10))
 d$haulid <- d$haul.id
 d <- subset(d, Quarter == 1)
 ##d <- subset(d, Year %in% 2000:2015 )
+d <- subset(d, Year %in% 2013:2015 )
 d <- subset(d, 25<HaulDur & HaulDur<35 )
 d <- as.data.frame(d)
 ## 24 * 78 * 58
@@ -72,7 +74,8 @@ system.time(opt <- nlminb(obj$par, obj$fn, obj$gr))
 ## summary(sdr,"fixed")
 ## summary(sdr,"report")
 
-logindex <- obj$report()$logindex
-rownames(logindex) <- levels(d$sizeGroup)
-colnames(logindex) <- levels(d$time)
+## logindex <- obj$report()$logindex
+## rownames(logindex) <- levels(d$sizeGroup)
+## colnames(logindex) <- levels(d$time)
 
+system.time(sdr <- sdreport(obj))
