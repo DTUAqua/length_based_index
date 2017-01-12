@@ -1,6 +1,6 @@
 library(DATRAS)
 load("EBcod.RData"); d <- dAll
-library(lgc)
+library(gridConstruct)
 grid <- gridConstruct(d,km=50)
 ## plot(grid)
 ## map("worldHires",add=TRUE)
@@ -11,7 +11,6 @@ d <- subset(d, Year %in% 2000:2015 )
 d <- subset(d, 25<HaulDur & HaulDur<35 )
 d <- as.data.frame(d)
 ## 24 * 78 * 58
-library(lgc)
 library(mapdata)
 
 ## Set up time factor (careful with empty factor levels ! )
