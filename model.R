@@ -1,13 +1,33 @@
+## =================================== For scripting
+getEnvVariable <- function(name, default){
+  value <- Sys.getenv(name)
+  if(value != ""){
+    assign(name, as(value, class(default)), envir=.GlobalEnv)
+  } else {
+    assign(name, default, envir=.GlobalEnv)
+  }
+}
+getEnvVariable("SPECIES", default = "Gadus Morhua")
+getEnvVariable("QUARTER", default = 4)
+getEnvVariable("KM",      default = 50)
+getEnvVariable("MINSIZE", default = 4)
+getEnvVariable("MAXSIZE", default = 120)
+getEnvVariable("MINYEAR", default = 2000)
+getEnvVariable("MAXYEAR", default = 2015)
+getEnvVariable("BY",      default = 2)
+getEnvVariable("FILENAME",default = paste0("results", QUARTER, ".RData"))
+## ========================================================
+
 library(DATRAS)
 load("EBcod.RData"); d <- dAll
 library(gridConstruct)
-grid <- gridConstruct(d,km=50)
+grid <- gridConstruct(d,km=KM)
 ## plot(grid)
 ## map("worldHires",add=TRUE)
-d <- addSpectrum(d,cm.breaks=seq(4,120,by=2))
+d <- addSpectrum(d,cm.breaks=seq(MINSIZE,MAXSIZE,by=BY))
 d$haulid <- d$haul.id
-d <- subset(d, Quarter == 4, Gear != "GRT")
-d <- subset(d, Year %in% 2000:2015 )
+d <- subset(d, Quarter == QUARTER, Gear != "GRT")
+d <- subset(d, Year %in% MINYEAR:MAXYEAR )
 d <- subset(d, 25<HaulDur & HaulDur<35 )
 d <- as.data.frame(d)
 ## 24 * 78 * 58
@@ -43,7 +63,6 @@ data <- data[!sapply(data,is.character)]
 data <- data[!sapply(data,is.logical)]
 
 library(TMB)
-openmp(8)
 compile("model.cpp")
 dyn.load(dynlib("model"))
 obj <- MakeADFun(
@@ -69,14 +88,6 @@ system.time(obj$fn())
 
 system.time(opt <- nlminb(obj$par, obj$fn, obj$gr))
 
-## system.time(sdr <- sdreport(obj))
-## summary(sdr,"fixed")
-## summary(sdr,"report")
-
-## logindex <- obj$report()$logindex
-## rownames(logindex) <- levels(d$sizeGroup)
-## colnames(logindex) <- levels(d$time)
-## save(logindex,file="result_Q4.RData")
 system.time(sdr <- sdreport(obj))
 save(sdr,file="sdr_Q4.RData")
 
