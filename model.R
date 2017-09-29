@@ -4,12 +4,10 @@ library(gridConstruct)
 grid <- gridConstruct(d,km=50)
 ## plot(grid)
 ## map("worldHires",add=TRUE)
-##d <- addSpectrum(d,cm.breaks=seq(4,120,by=2))
-d <- addSpectrum(d,cm.breaks=seq(4,120,by=10))
+d <- addSpectrum(d,cm.breaks=seq(4,120,by=2))
 d$haulid <- d$haul.id
-d <- subset(d, Quarter == 1)
-##d <- subset(d, Year %in% 2000:2015 )
-d <- subset(d, Year %in% 2013:2015 )
+d <- subset(d, Quarter == 4, Gear != "GRT")
+d <- subset(d, Year %in% 2000:2015 )
 d <- subset(d, 25<HaulDur & HaulDur<35 )
 d <- as.data.frame(d)
 ## 24 * 78 * 58
@@ -45,6 +43,7 @@ data <- data[!sapply(data,is.character)]
 data <- data[!sapply(data,is.logical)]
 
 library(TMB)
+openmp(8)
 compile("model.cpp")
 dyn.load(dynlib("model"))
 obj <- MakeADFun(
@@ -64,6 +63,7 @@ obj <- MakeADFun(
     random=c("eta","etanug","etamean","beta")
     )
 
+print(obj$par)
 runSymbolicAnalysis(obj)
 system.time(obj$fn())
 
@@ -76,5 +76,26 @@ system.time(opt <- nlminb(obj$par, obj$fn, obj$gr))
 ## logindex <- obj$report()$logindex
 ## rownames(logindex) <- levels(d$sizeGroup)
 ## colnames(logindex) <- levels(d$time)
-
+## save(logindex,file="result_Q4.RData")
 system.time(sdr <- sdreport(obj))
+save(sdr,file="sdr_Q4.RData")
+
+system.time(sdr2 <- sdreport(obj,bias.correct=TRUE,hessian.fixed=solve(sdr$cov.fixed)))
+mat <- summary(sdr2,"report")
+rownames(mat) <- NULL
+df <- as.data.frame(mat)
+df$unbiased <- sdr2$unbiased$value
+df <- cbind(df,
+            expand.grid(sizeGroup=levels(d$sizeGroup),time=levels(d$time))
+            )
+save(df,file="df_Q4.RData")
+xtabs(Estimate ~ sizeGroup + time,data=df)
+x1 <- xtabs(N ~ sizeGroup + time,data=d) / xtabs( ~ sizeGroup + time,data=d)
+x2 <- xtabs(Estimate ~ sizeGroup + time,data=df)
+x3 <- xtabs(unbiased ~ sizeGroup + time,data=df)
+pdf("plotQ4.pdf")
+matplot(x1,type="l",main="Raw average")
+matplot(x2,type="l",main="Posterior mode")
+matplot(x3,type="l",main="Posterior mean")
+dev.off()
+
