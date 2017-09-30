@@ -1,18 +1,43 @@
+## Default inputs
+SPECIES  <- "Gadus morhua"
+QUARTER  <- 4
+KM       <- 50
+MINSIZE  <- 4
+MAXSIZE  <- 120
+MINYEAR  <- 2000
+MAXYEAR  <- 2015
+BY       <- 2
+DATFILE  <- "EBcod.RData"
+OUTFILE  <- paste0("results", QUARTER, ".RData")
+
+## For scripting
+input <- parse(text=Sys.getenv("SCRIPT_INPUT"))
+print(input)
+eval(input)
+
+## Load data
 library(DATRAS)
-load("EBcod.RData"); d <- dAll
+d <- local({
+    load(DATFILE)
+    stopifnot(length(ls()) == 1)
+    get(ls())
+})
+stopifnot( class(d) == "DATRASraw" )
+
+## Make grid
 library(gridConstruct)
-grid <- gridConstruct(d,km=50)
+grid <- gridConstruct(d,km=KM)
 ## plot(grid)
 ## map("worldHires",add=TRUE)
-##d <- addSpectrum(d,cm.breaks=seq(4,120,by=2))
-d <- addSpectrum(d,cm.breaks=seq(4,120,by=10))
+
+## Data subset
+d <- addSpectrum(d,cm.breaks=seq(MINSIZE,MAXSIZE,by=BY))
 d$haulid <- d$haul.id
-d <- subset(d, Quarter == 1)
-##d <- subset(d, Year %in% 2000:2015 )
-d <- subset(d, Year %in% 2013:2015 )
+d <- subset(d, Quarter == QUARTER, Gear != "GRT")
+d <- subset(d, Year %in% MINYEAR:MAXYEAR )
 d <- subset(d, 25<HaulDur & HaulDur<35 )
 d <- as.data.frame(d)
-## 24 * 78 * 58
+
 library(mapdata)
 
 ## Set up time factor (careful with empty factor levels ! )
@@ -64,17 +89,31 @@ obj <- MakeADFun(
     random=c("eta","etanug","etamean","beta")
     )
 
+print(obj$par)
 runSymbolicAnalysis(obj)
 system.time(obj$fn())
 
 system.time(opt <- nlminb(obj$par, obj$fn, obj$gr))
 
-## system.time(sdr <- sdreport(obj))
-## summary(sdr,"fixed")
-## summary(sdr,"report")
-
-## logindex <- obj$report()$logindex
-## rownames(logindex) <- levels(d$sizeGroup)
-## colnames(logindex) <- levels(d$time)
-
 system.time(sdr <- sdreport(obj))
+
+system.time(sdr2 <- sdreport(obj,bias.correct=TRUE,hessian.fixed=solve(sdr$cov.fixed)))
+mat <- summary(sdr2,"report")
+rownames(mat) <- NULL
+df <- as.data.frame(mat)
+df$unbiased <- sdr2$unbiased$value
+df <- cbind(df,
+            expand.grid(sizeGroup=levels(d$sizeGroup),time=levels(d$time))
+            )
+xtabs(Estimate ~ sizeGroup + time,data=df)
+x1 <- xtabs(N ~ sizeGroup + time,data=d) / xtabs( ~ sizeGroup + time,data=d)
+x2 <- xtabs(Estimate ~ sizeGroup + time,data=df)
+x3 <- xtabs(unbiased ~ sizeGroup + time,data=df)
+
+save(sdr, df, file=OUTFILE)
+
+## pdf("plotQ4.pdf")
+## matplot(x1,type="l",main="Raw average")
+## matplot(x2,type="l",main="Posterior mode")
+## matplot(x3,type="l",main="Posterior mean")
+## dev.off()
