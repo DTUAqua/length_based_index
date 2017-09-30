@@ -1,36 +1,43 @@
-## =================================== For scripting
-getEnvVariable <- function(name, default){
-  value <- Sys.getenv(name)
-  if(value != ""){
-    assign(name, as(value, class(default)), envir=.GlobalEnv)
-  } else {
-    assign(name, default, envir=.GlobalEnv)
-  }
-}
-getEnvVariable("SPECIES", default = "Gadus Morhua")
-getEnvVariable("QUARTER", default = 4)
-getEnvVariable("KM",      default = 50)
-getEnvVariable("MINSIZE", default = 4)
-getEnvVariable("MAXSIZE", default = 120)
-getEnvVariable("MINYEAR", default = 2000)
-getEnvVariable("MAXYEAR", default = 2015)
-getEnvVariable("BY",      default = 2)
-getEnvVariable("FILENAME",default = paste0("results", QUARTER, ".RData"))
-## ========================================================
+## Default inputs
+SPECIES  <- "Gadus morhua"
+QUARTER  <- 4
+KM       <- 50
+MINSIZE  <- 4
+MAXSIZE  <- 120
+MINYEAR  <- 2000
+MAXYEAR  <- 2015
+BY       <- 2
+DATFILE  <- "EBcod.RData"
+OUTFILE  <- paste0("results", QUARTER, ".RData"))
 
+## For scripting
+input <- parse(text=Sys.getenv("SCRIPT_INPUT"))
+print(input)
+eval(input)
+
+## Load data
 library(DATRAS)
-load("EBcod.RData"); d <- dAll
+d <- local({
+    load(DATFILE)
+    stopifnot(length(ls()) == 1)
+    get(ls())
+})
+stopifnot( class(d) == "DATRASraw" )
+
+## Make grid
 library(gridConstruct)
 grid <- gridConstruct(d,km=KM)
 ## plot(grid)
 ## map("worldHires",add=TRUE)
+
+## Data subset
 d <- addSpectrum(d,cm.breaks=seq(MINSIZE,MAXSIZE,by=BY))
 d$haulid <- d$haul.id
 d <- subset(d, Quarter == QUARTER, Gear != "GRT")
 d <- subset(d, Year %in% MINYEAR:MAXYEAR )
 d <- subset(d, 25<HaulDur & HaulDur<35 )
 d <- as.data.frame(d)
-## 24 * 78 * 58
+
 library(mapdata)
 
 ## Set up time factor (careful with empty factor levels ! )
@@ -89,7 +96,6 @@ system.time(obj$fn())
 system.time(opt <- nlminb(obj$par, obj$fn, obj$gr))
 
 system.time(sdr <- sdreport(obj))
-save(sdr,file="sdr_Q4.RData")
 
 system.time(sdr2 <- sdreport(obj,bias.correct=TRUE,hessian.fixed=solve(sdr$cov.fixed)))
 mat <- summary(sdr2,"report")
@@ -99,14 +105,15 @@ df$unbiased <- sdr2$unbiased$value
 df <- cbind(df,
             expand.grid(sizeGroup=levels(d$sizeGroup),time=levels(d$time))
             )
-save(df,file="df_Q4.RData")
 xtabs(Estimate ~ sizeGroup + time,data=df)
 x1 <- xtabs(N ~ sizeGroup + time,data=d) / xtabs( ~ sizeGroup + time,data=d)
 x2 <- xtabs(Estimate ~ sizeGroup + time,data=df)
 x3 <- xtabs(unbiased ~ sizeGroup + time,data=df)
-pdf("plotQ4.pdf")
-matplot(x1,type="l",main="Raw average")
-matplot(x2,type="l",main="Posterior mode")
-matplot(x3,type="l",main="Posterior mean")
-dev.off()
 
+save(sdr, df, file=OUTFILE)
+
+## pdf("plotQ4.pdf")
+## matplot(x1,type="l",main="Raw average")
+## matplot(x2,type="l",main="Posterior mode")
+## matplot(x3,type="l",main="Posterior mean")
+## dev.off()
