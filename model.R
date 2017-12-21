@@ -111,8 +111,11 @@ x1 <- xtabs(N ~ sizeGroup + time,data=d) / xtabs( ~ sizeGroup + time,data=d)
 x2 <- xtabs(Estimate ~ sizeGroup + time,data=df)
 x3 <- xtabs(unbiased ~ sizeGroup + time,data=df)
 
-save(sdr, df, file=OUTFILE)
-## Set choleski and sp_hess to NULL before saving.
+obj$env$L.created.by.newton <- NULL
+obj$env$spHess <- NULL
+
+save(sdr, df, obj, grid, file=OUTFILE)
+## Set choleski and sp_hess to NULL before saving obj.
 
 ## pdf("plotQ4.pdf")
 ## matplot(x1,type="l",main="Raw average")
