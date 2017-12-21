@@ -1,14 +1,15 @@
 ## Default inputs
 SPECIES  <- "Gadus morhua"
 QUARTER  <- 4
-KM       <- 50
+KM       <- 6
 MINSIZE  <- 4
 MAXSIZE  <- 120
-MINYEAR  <- 2000
-MAXYEAR  <- 2015
-BY       <- 2
+MINYEAR  <- 1991
+MAXYEAR  <- 2017
+BY       <- 1
+CMGROUP <- MINSIZE+1
 DATFILE  <- "EBcod.RData"
-OUTFILE  <- paste0("results", QUARTER, ".RData")
+OUTFILE  <- paste0("results", QUARTER,"-cm",CMGROUP,".RData")
 
 ## For scripting
 input <- parse(text=Sys.getenv("SCRIPT_INPUT"))
@@ -31,9 +32,9 @@ grid <- gridConstruct(d,km=KM)
 ## map("worldHires",add=TRUE)
 
 ## Data subset
-d <- addSpectrum(d,cm.breaks=seq(MINSIZE,MAXSIZE,by=BY))
+d <- addSpectrum(d,cm.breaks=seq(CMGROUP-1,CMGROUP+1,by=BY))
 d$haulid <- d$haul.id
-d <- subset(d, Quarter == QUARTER, Gear != "GRT")
+##d <- subset(d, Quarter == QUARTER, Gear != "GRT")
 d <- subset(d, Year %in% MINYEAR:MAXYEAR )
 d <- subset(d, 25<HaulDur & HaulDur<35 )
 d <- as.data.frame(d)
@@ -111,6 +112,7 @@ x2 <- xtabs(Estimate ~ sizeGroup + time,data=df)
 x3 <- xtabs(unbiased ~ sizeGroup + time,data=df)
 
 save(sdr, df, file=OUTFILE)
+## Set choleski and sp_hess to NULL before saving.
 
 ## pdf("plotQ4.pdf")
 ## matplot(x1,type="l",main="Raw average")
