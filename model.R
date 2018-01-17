@@ -1,14 +1,14 @@
 ## Default inputs
 SPECIES  <- "Gadus morhua"
 QUARTER  <- 4
-KM       <- 6
+KM       <- 50 ## FIXME
 MINSIZE  <- 4
 MAXSIZE  <- 120
 MINYEAR  <- 1991
 MAXYEAR  <- 2017
 BY       <- 1
 CMGROUP <- MINSIZE+1
-DATFILE  <- "EBcod.RData"
+DATFILE  <- "EBcodProcessedData.RData"
 OUTFILE  <- paste0("results", QUARTER,"-cm",CMGROUP,".RData")
 
 ## For scripting
@@ -20,16 +20,31 @@ eval(input)
 library(DATRAS)
 d <- local({
     load(DATFILE)
-    stopifnot(length(ls()) == 1)
-    get(ls())
+    dQ14
 })
 stopifnot( class(d) == "DATRASraw" )
+
+## Load fine scale prediction grid
+area <- local({
+    load(DATFILE)
+    EBarea.s
+})
+stopifnot( class(area) == "data.frame" )
 
 ## Make grid
 library(gridConstruct)
 grid <- gridConstruct(d,km=KM)
 ## plot(grid)
 ## map("worldHires",add=TRUE)
+
+## Lookup grid cell of fine scale (lon,lat) coords
+area$position <- gridFactor(area, grid)
+
+## Common transformations applied to both sets:
+## (re-scaled depth)
+rescale <- function(x) (x - 50) / 20
+d   $DepthRS <- rescale(   d$Depth)
+area$DepthRS <- rescale(area$Depth)
 
 ## Data subset
 d <- addSpectrum(d,cm.breaks=seq(CMGROUP-1,CMGROUP+1,by=BY))
@@ -56,16 +71,31 @@ I <- .symDiagonal(nrow(Q0))
 ## TODO: Gear by sizeGroup
 ##A <- sparse.model.matrix( ~ sizeGroup:time + Gear - 1, data=d)
 A0 <- sparse.model.matrix( ~ sizeGroup:time - 1, data=d)
-A <- sparse.model.matrix( ~ Gear - 1, data=d)
-A <- A[,-which.max(table(d$Gear)),drop=FALSE]
+form <- ~ Gear - 1 + DepthRS + I(DepthRS^2) + HaulDur
+A <- sparse.model.matrix(form, data=d)
+##A <- A[ , colnames(A) != "GearTVL" , drop=FALSE]
 
-B <- cbind2(A,A0); B <- t(B)%*%B
+beta     <- rep(0, ncol(A)); names(beta) <- colnames(A)
+beta_map <- beta * 0 + seq_along(beta)
+beta["GearTVL"]     <- 0  ## Reference !!!
+beta["HaulDur"]     <- 1  ## Offset !!!
+beta_map["HaulDur"] <- NA ## FIXED
+beta_map["GearTVL"] <- NA ## FIXED
+map <- list(beta = factor(beta_map))
+
+B <- cbind2(A[, names(beta_map[!is.na(beta_map)]) ],A0); B <- t(B)%*%B
 if(min(eigen(B)$val)<1e-8)stop("Singular B")
+
+## Design matrix for *spatial* prediction
+area$Gear <- factor(area$Gear, levels = levels(d$Gear))
+Apredict <- sparse.model.matrix( form, data=area)
 
 data <- as.list(d)
 data$A <- A
 data$I <- I
 data$Q0 <- Q0
+
+data$Apredict <- Apredict
 
 data <- data[!sapply(data,is.character)]
 data <- data[!sapply(data,is.logical)]
@@ -81,13 +111,14 @@ obj <- MakeADFun(
         tphi_time= 0 ,
         tphi_size = 0 ,
         logsigma= 0 ,
-        beta= rep(0, ncol(A)) ,
+        beta= beta ,
         eta= array(0, c(nrow(Q0), nlevels(d$time), nlevels(d$sizeGroup) ) ),
         etanug= array(0, c(nlevels(d$sizeGroup), nlevels(d$haulid) ) ),
         etamean = array(0, c(nlevels(d$sizeGroup) , nlevels(d$time)) )
         ),
     DLL="model",
-    random=c("eta","etanug","etamean","beta")
+    random=c("eta","etanug","etamean","beta"),
+    map=map
     )
 
 print(obj$par)

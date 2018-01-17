@@ -16,6 +16,9 @@ Type objective_function<Type>::operator() ()
   DATA_SPARSE_MATRIX (I);        /* For random field */
   DATA_SPARSE_MATRIX (A);        /* Design matrix (standardization) */
 
+  /* Prediction */
+  DATA_SPARSE_MATRIX (Apredict);
+
   /* Fixed effects */
   PARAMETER          (logdelta); /* For random field (corr) */
   PARAMETER          (logkappa); /* For random field (scale) */
