@@ -1,7 +1,7 @@
 ## Default inputs
 SPECIES  <- "Gadus morhua"
 QUARTER  <- 4
-KM       <- 50 ## FIXME
+KM       <- 40 ## FIXME
 MINSIZE  <- 4
 MAXSIZE  <- 120
 MINYEAR  <- 1991
@@ -58,7 +58,12 @@ library(mapdata)
 
 ## Set up time factor (careful with empty factor levels ! )
 years <- as.numeric(levels(d$Year))
-d$time <- factor(d$Year, levels=min(years):max(years))
+## d$time <- factor(d$Year, levels=min(years):max(years))
+## HACK: Time = year + quarter / 10
+timeLevels <- sort(outer(min(years):max(years), c(1,4)/10, "+"))
+time <- as.numeric(as.character(d$Year)) + as.numeric(as.character(d$Quarter)) / 10
+timeLevels <- timeLevels[which(min(time)==timeLevels):which(max(time)==timeLevels)]
+d$time <- factor(time, levels=timeLevels)
 
 ## Set up spatial factor and grid
 ## grid <- gridConstruct(d,nearestObs=100)
@@ -154,3 +159,4 @@ save(sdr, df, obj, grid, file=OUTFILE)
 ## matplot(x2,type="l",main="Posterior mode")
 ## matplot(x3,type="l",main="Posterior mean")
 ## dev.off()
+## rep <- obj$report(obj$env$last.par.best)
