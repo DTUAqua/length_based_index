@@ -48,6 +48,11 @@ Type objective_function<Type>::operator() ()
 
   Type nll = 0; // Negative log likelhood
 
+  // Flat beta prior
+  DATA_SCALAR(huge_sd);
+  nll -= dnorm(beta, Type(0), huge_sd, true).sum();
+  nll -= dnorm(vector<Type>(etamean), Type(0), huge_sd, true).sum();
+
   // Process likelihood
   nll += SEPARABLE(nldens_size,SEPARABLE(nldens_time, nldens_spatial))(eta);
 

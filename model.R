@@ -106,6 +106,9 @@ data$pos_predict <- area$pos
 data <- data[!sapply(data,is.character)]
 data <- data[!sapply(data,is.logical)]
 
+## Prior std dev on fixed effects (for robustness only)
+data$huge_sd <- 100
+
 library(TMB)
 compile("model.cpp")
 dyn.load(dynlib("model"))
