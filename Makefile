@@ -9,11 +9,9 @@ FIRST_LENGTH_GROUP = 5
 LAST_LENGTH_GROUP = 100
 
 lengthgroups:= $(shell echo 'cat(formatC($(FIRST_LENGTH_GROUP):$(LAST_LENGTH_GROUP), digits=3, flag="0"))' | R --slave)
-resultsQ1files:=$(foreach cm,$(lengthgroups),results/cod-Q1-cm$(cm).RData) 
-resultsQ4files:=$(foreach cm,$(lengthgroups),results/cod-Q4-cm$(cm).RData) 
+resultsQ14files:=$(foreach cm,$(lengthgroups),results/cod-Q14-cm$(cm).RData)
 
-all: $(resultsQ1files) $(resultsQ4files)
-
+all: $(resultsQ14files)
 
 COD='Gadus morhua'
 
@@ -26,15 +24,10 @@ MODEL_BIN = model.so
 $(MODEL_BIN) : $(MODEL_SRC)
 	echo "TMB:::compile('$(MODEL_SRC)', '-Ofast')" | R --slave
 
-## Q4 Targets
-results/cod-Q4-cm%.RData: $(MODEL_BIN)
+## Q14 Targets
+results/cod-Q14-cm%.RData: $(MODEL_BIN)
 	mkdir -p results
-	export SCRIPT_INPUT="{ SPECIES = $(COD); QUARTER = 4 ; CMGROUP = $*; OUTFILE='$@' }"; $(RUN_MODEL)
-
-## Q1 Targets
-results/cod-Q1-cm%.RData: $(MODEL_BIN)
-	mkdir -p results
-	export SCRIPT_INPUT="{ SPECIES = $(COD); QUARTER = 1 ; CMGROUP = $*; OUTFILE='$@' }"; $(RUN_MODEL)
+	export SCRIPT_INPUT="{ SPECIES = $(COD); CMGROUP = $*; OUTFILE='$@' }"; $(RUN_MODEL)
 
 ## Optional: Send mail when done + link to results
 publish: results
