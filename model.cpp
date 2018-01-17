@@ -18,6 +18,7 @@ Type objective_function<Type>::operator() ()
 
   /* Prediction */
   DATA_SPARSE_MATRIX (Apredict);
+  DATA_FACTOR     (pos_predict); /* Length = fine scale area. nlevels = num grid cells */
 
   /* Fixed effects */
   PARAMETER          (logdelta); /* For random field (corr) */
@@ -68,19 +69,25 @@ Type objective_function<Type>::operator() ()
 		 true);
   }
 
-  // REPORT
-  matrix<Type> index(NLEVELS(sizeGroup), NLEVELS(time));
-  for(int i=0; i<index.rows(); i++){
-    for(int j=0; j<index.cols(); j++){
-      //etamean(i, j) +
-      //eta(... , j, i)
-      index(i,j) = exp( etamean(i, j) ) * exp(vector<Type>(eta.col(i).col(j))).sum();
+  // Spatial abundance
+  vector<Type> lin_predictor = Apredict * beta;
+  matrix<Type> dens(Apredict.rows(), NLEVELS(time));
+  dens.setZero();
+  for(int j=0; j<dens.cols(); j++){ // Time
+    for(int i=0; i<dens.rows(); i++){ // Space
+      for(int k=0; k<NLEVELS(sizeGroup); k++){ // Size
+        dens(i, j) += exp(lin_predictor(i) + etamean(k, j) + eta(pos_predict(i), j, k));
+      }
+      dens(i, j) /= NLEVELS(sizeGroup);
     }
   }
+
+  matrix<Type> index = dens.colwise().mean();
+
   ADREPORT(index);
   REPORT(index);
+  REPORT(dens);
 
   return nll;
 
 }
-

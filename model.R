@@ -96,6 +96,7 @@ data$I <- I
 data$Q0 <- Q0
 
 data$Apredict <- Apredict
+data$pos_predict <- area$pos
 
 data <- data[!sapply(data,is.character)]
 data <- data[!sapply(data,is.logical)]
