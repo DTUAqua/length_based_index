@@ -1,7 +1,7 @@
 ## Default inputs
 SPECIES  <- "Gadus morhua"
 QUARTER  <- 4
-KM       <- 40 ## FIXME
+KM       <- 6
 MINSIZE  <- 4
 MAXSIZE  <- 120
 MINYEAR  <- 1991
