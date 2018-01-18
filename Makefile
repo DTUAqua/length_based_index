@@ -11,8 +11,11 @@ LAST_LENGTH_GROUP = 100
 
 lengthgroups:= $(shell echo 'cat(formatC($(FIRST_LENGTH_GROUP):$(LAST_LENGTH_GROUP), digits=3, flag="0"))' | R --slave)
 resultsQ14files:=$(foreach cm,$(lengthgroups),results/cod-Q14-cm$(cm).RData)
+animQ14files:=$(foreach cm,$(lengthgroups),anim/cod-Q14-cm$(cm).pdf)
 
 all: $(resultsQ14files)
+
+all_anim: $(animQ14files)
 
 COD='Gadus morhua'
 
@@ -29,6 +32,10 @@ $(MODEL_BIN) : $(MODEL_SRC)
 results/cod-Q14-cm%.RData: $(MODEL_BIN)
 	mkdir -p results
 	export SCRIPT_INPUT="{ SPECIES = $(COD); CMGROUP = $*; OUTFILE='$@' }"; $(RUN_MODEL)
+
+anim/cod-Q14-cm%.pdf: $(MODEL_BIN)
+	mkdir -p anim
+	export SCRIPT_INPUT="{ RESFILE='results/cod-Q14-cm$*.RData'; OUTFILE='$@' }"; R --slave < animation.R
 
 ## Optional: Send mail when done + link to results
 publish: results
