@@ -87,10 +87,10 @@ Type objective_function<Type>::operator() ()
     }
   }
 
-  matrix<Type> index = dens.colwise().mean();
+  vector<Type> logindex = dens.colwise().mean().array().log();
 
-  ADREPORT(index);
-  REPORT(index);
+  ADREPORT(logindex);
+  REPORT(logindex);
   REPORT(dens);
 
   return nll;

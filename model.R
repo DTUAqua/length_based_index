@@ -47,13 +47,19 @@ d   $DepthRS <- rescale(   d$Depth)
 area$DepthRS <- rescale(area$Depth)
 d   $logHaulDur <- log(   d$HaulDur)
 area$logHaulDur <- log(area$HaulDur)
+d$timeOfDay <- factor(d$timeOfDay)
+area$timeOfDay <- 1
+area$timeOfDay <- factor(area$timeOfDay, levels=levels(d$timeOfDay))
+area$Quarter <- 1
+area$Quarter <- factor(area$Quarter, levels=levels(d$Quarter))
 
 ## Data subset
-d <- addSpectrum(d,cm.breaks=seq(CMGROUP-1,CMGROUP+1,by=BY))
+d$N <- d$N[,CMGROUP,drop=FALSE]
+##d <- addSpectrum(d,cm.breaks=seq(CMGROUP-1,CMGROUP+1,by=BY))
 d$haulid <- d$haul.id
 ##d <- subset(d, Quarter == QUARTER, Gear != "GRT")
 d <- subset(d, Year %in% MINYEAR:MAXYEAR )
-d <- subset(d, 25<HaulDur & HaulDur<35 )
+##d <- subset(d, 25<HaulDur & HaulDur<35 )
 d <- as.data.frame(d)
 
 library(mapdata)
@@ -77,8 +83,10 @@ I <- .symDiagonal(nrow(Q0))
 ## Set up design matrix
 ## TODO: Gear by sizeGroup
 ##A <- sparse.model.matrix( ~ sizeGroup:time + Gear - 1, data=d)
-A0 <- sparse.model.matrix( ~ sizeGroup:time - 1, data=d)
-form <- ~ Gear - 1 + DepthRS + I(DepthRS^2) + logHaulDur
+A0 <- sparse.model.matrix( ~ time - 1, data=d)
+form <- ~ Gear - 1 + Quarter:DepthRS + Quarter:I(DepthRS^2) + logHaulDur + timeOfDay
+## If you want to test the effect of Quarter specific depth:
+## form <- ~ Gear - 1 + DepthRS + I(DepthRS^2) + Quarter:DepthRS + Quarter:I(DepthRS^2) + logHaulDur + timeOfDay
 A <- sparse.model.matrix(form, data=d)
 ##A <- A[ , colnames(A) != "GearTVL" , drop=FALSE]
 
@@ -111,6 +119,11 @@ data <- data[!sapply(data,is.logical)]
 ## Prior std dev on fixed effects (for robustness only)
 data$huge_sd <- 100
 
+## Can't estimate size corr if only one sizegroup:
+if (nlevels(d$sizeGroup) <= 1) {
+    map$tphi_size <- factor(NA)
+}
+
 library(TMB)
 compile("model.cpp")
 dyn.load(dynlib("model"))
@@ -138,25 +151,33 @@ system.time(obj$fn())
 
 system.time(opt <- nlminb(obj$par, obj$fn, obj$gr))
 
-system.time(sdr <- sdreport(obj))
+## Quarter 1 sdreport
+system.time(sdr1 <- sdreport(obj))
 
-system.time(sdr2 <- sdreport(obj,bias.correct=TRUE,hessian.fixed=solve(sdr$cov.fixed)))
-mat <- summary(sdr2,"report")
-rownames(mat) <- NULL
-df <- as.data.frame(mat)
-df$unbiased <- sdr2$unbiased$value
-df <- cbind(df,
-            expand.grid(sizeGroup=levels(d$sizeGroup),time=levels(d$time))
-            )
-xtabs(Estimate ~ sizeGroup + time,data=df)
-x1 <- xtabs(N ~ sizeGroup + time,data=d) / xtabs( ~ sizeGroup + time,data=d)
-x2 <- xtabs(Estimate ~ sizeGroup + time,data=df)
-x3 <- xtabs(unbiased ~ sizeGroup + time,data=df)
+## Quarter 4 sdreport
+area$Quarter[] <- "4"
+obj$env$data$Apredict <- as(sparse.model.matrix( form, data=area), "dgTMatrix")
+system.time(sdr4 <- sdreport(obj, hessian.fixed=solve(sdr1$cov.fixed)))
+
+if(FALSE) { ## Skip bias correction for now
+    system.time(sdr2 <- sdreport(obj,bias.correct=TRUE,hessian.fixed=solve(sdr$cov.fixed)))
+    mat <- summary(sdr2,"report")
+    rownames(mat) <- NULL
+    df <- as.data.frame(mat)
+    df$unbiased <- sdr2$unbiased$value
+    df <- cbind(df,
+                expand.grid(sizeGroup=levels(d$sizeGroup),time=levels(d$time))
+                )
+    xtabs(Estimate ~ sizeGroup + time,data=df)
+    x1 <- xtabs(N ~ sizeGroup + time,data=d) / xtabs( ~ sizeGroup + time,data=d)
+    x2 <- xtabs(Estimate ~ sizeGroup + time,data=df)
+    x3 <- xtabs(unbiased ~ sizeGroup + time,data=df)
+}
 
 obj$env$L.created.by.newton <- NULL
 obj$env$spHess <- NULL
 
-save(sdr, df, obj, grid, file=OUTFILE)
+save(sdr1, sdr4, obj, grid, file=OUTFILE)
 ## Set choleski and sp_hess to NULL before saving obj.
 
 ## pdf("plotQ4.pdf")
