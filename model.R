@@ -45,6 +45,8 @@ area$position <- gridFactor(area, grid)
 rescale <- function(x) (x - 50) / 20
 d   $DepthRS <- rescale(   d$Depth)
 area$DepthRS <- rescale(area$Depth)
+d   $logHaulDur <- log(   d$HaulDur)
+area$logHaulDur <- log(area$HaulDur)
 
 ## Data subset
 d <- addSpectrum(d,cm.breaks=seq(CMGROUP-1,CMGROUP+1,by=BY))
@@ -76,16 +78,16 @@ I <- .symDiagonal(nrow(Q0))
 ## TODO: Gear by sizeGroup
 ##A <- sparse.model.matrix( ~ sizeGroup:time + Gear - 1, data=d)
 A0 <- sparse.model.matrix( ~ sizeGroup:time - 1, data=d)
-form <- ~ Gear - 1 + DepthRS + I(DepthRS^2) + HaulDur
+form <- ~ Gear - 1 + DepthRS + I(DepthRS^2) + logHaulDur
 A <- sparse.model.matrix(form, data=d)
 ##A <- A[ , colnames(A) != "GearTVL" , drop=FALSE]
 
 beta     <- rep(0, ncol(A)); names(beta) <- colnames(A)
 beta_map <- beta * 0 + seq_along(beta)
-beta["GearTVL"]     <- 0  ## Reference !!!
-beta["HaulDur"]     <- 1  ## Offset !!!
-beta_map["HaulDur"] <- NA ## FIXED
-beta_map["GearTVL"] <- NA ## FIXED
+beta["GearTVL"]        <- 0  ## Reference !!!
+beta["logHaulDur"]     <- 1  ## Offset !!!
+beta_map["logHaulDur"] <- NA ## FIXED
+beta_map["GearTVL"]    <- NA ## FIXED
 map <- list(beta = factor(beta_map))
 
 B <- cbind2(A[, names(beta_map[!is.na(beta_map)]) ],A0); B <- t(B)%*%B
