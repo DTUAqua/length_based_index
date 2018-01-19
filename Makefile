@@ -20,6 +20,9 @@ all_anim: $(animQ14files)
 
 all_post: $(postQ14files)
 
+join: all_post
+	R --slave < join.R
+
 COD='Gadus morhua'
 
 ## Run the model
