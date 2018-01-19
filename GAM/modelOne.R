@@ -21,9 +21,15 @@ source("fun.R")
 
 dQ14$DepthRS = (dQ14$Depth - 50)/20
 
-mymodel ="s(Year,Quarter,bs='re') + s(Gear,bs='re') + s(utm.x,utm.y,bs='ts',k=100,by=Quarter) + ti(ctime,utm.x,utm.y,d=c(1,2),bs=c('ts','ts'),k=c(12,8)) + DepthRS:Quarter + I(DepthRS^2):Quarter  +s(TimeShotHour,k=6,bs='cc')+offset(log(HaulDur))";
+dQ14$Gear = factor( dQ14$Gear, levels=names(sort(table(dQ14$Gear),TRUE))) 
+
+mymodel ="Quarter+s(Year,Quarter,bs='re') + Gear + s(utm.x,utm.y,bs='ts',k=144,by=Quarter) + ti(ctime,utm.x,utm.y,d=c(1,2),bs=c('ts','ts'),k=c(16,9)) + DepthRS:Quarter + I(DepthRS^2):Quarter  +s(TimeShotHour,k=6,bs='cc')+offset(log(HaulDur))";
 
 tsel = which( !duplicated(dQ14$ctime))
+
+tselQ1 = which( !duplicated(dQ14$ctime) & dQ14$Quarter == "1" )
+tselQ4 = which( !duplicated(dQ14$ctime) & dQ14$Quarter == "4" )
+
 
 knots=list(TimeShotHour=seq(0,24,length=6))
 
@@ -88,9 +94,7 @@ namedCoef<-function(m,name="Gear") {
 
 gc=gearCoef(myidx$models[[1]])
 gc.sd=gearCoefSd(myidx$models[[1]])
-namedCoef(myidx$models[[1]],"DepthRS")
-
-
+dc = namedCoef(myidx$models[[1]],"DepthRS")
 
 sink(file=paste0("results/summary-",CMGROUP,".txt"))
 summary(myidx$models[[1]])
@@ -130,10 +134,16 @@ plotMapFit<-function(m, pred.ctimes,pred.years,pred.quarter){
 }
 
 
-pdf(paste0("maps-cm",CMGROUP,".pdf"))
- plotMapFit(myidx,pred.ctimes=dQ14$ctime[tsel],pred.years=dQ14$Year[tsel],pred.quarter=dQ14$Quarter[tsel])
-dev.off()    
+pdf(paste0("results/mapsQ1-cm",CMGROUP,".pdf"))
+ plotMapFit(myidx,pred.ctimes=dQ14$ctime[tselQ1],pred.years=dQ14$Year[tselQ1],pred.quarter=dQ14$Quarter[tselQ1])
+dev.off()
 
-out<-list(idx = myidx$idx, gc=gc, gc.sd=gc.sd )
+
+pdf(paste0("results/mapsQ4-cm",CMGROUP,".pdf"))
+ plotMapFit(myidx,pred.ctimes=dQ14$ctime[tsel],pred.years=dQ14$Year[tsel],pred.quarter=dQ14$Quarter[tsel])
+dev.off()
+
+
+out<-list(idx = myidx$idx, gc=gc, gc.sd=gc.sd, dc=dc )
 save(out,paste0("results/out-cm",CMGROUP,".RData"))
 
