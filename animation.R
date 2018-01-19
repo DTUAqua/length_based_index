@@ -17,7 +17,20 @@ library(gridConstruct)
 dyn.load(dynlib("model"))
 lpb <- obj$env$last.par.best
 obj$env$type <- "Fun" ## No AD !
-rep <- obj$report(lpb)
+rep4 <- obj$report(lpb) ## Q4 !
+## Swap Q1/Q4 columns:
+cn <- colnames(obj$env$data$Apredict)
+cnswap <- sub("Quarter4","quarter1",cn)
+cnswap <- sub("Quarter1","quarter4",cnswap)
+cnswap <- sub("quarter","Quarter",cnswap)
+Aswap <- obj$env$data$Apredict[, cnswap]
+obj$env$data$Apredict <- Aswap
+rep1 <- obj$report(lpb) ## Q1 !
+##
+times <- levels(obj$env$data$time)
+rep <- rep4
+timesQ1 <- substring(times,5,6) == ".1"
+rep$dens[, timesQ1 ] <- rep1$dens[ , timesQ1 ]
 
 ## For each time, attach spatial 'index' to area and plot:
 pdf(OUTFILE)
