@@ -11,12 +11,13 @@ LAST_LENGTH_GROUP = 33
 
 lengthgroups:= $(shell echo 'cat(formatC($(FIRST_LENGTH_GROUP):$(LAST_LENGTH_GROUP), digits=3, flag="0"))' | R --slave)
 resultsQ14files:=$(foreach cm,$(lengthgroups),results/cod-Q14-cm$(cm).RData)
-animQ14files:=$(foreach cm,$(lengthgroups),anim/cod-Q14-cm$(cm).pdf)
+animQ1files:=$(foreach cm,$(lengthgroups),anim/cod-Q1-cm$(cm).pdf)
+animQ4files:=$(foreach cm,$(lengthgroups),anim/cod-Q4-cm$(cm).pdf)
 postQ14files:=$(foreach cm,$(lengthgroups),post/cod-Q14-cm$(cm).RData)
 
 all: $(resultsQ14files)
 
-all_anim: $(animQ14files)
+all_anim: $(animQ1files) $(animQ4files)
 
 all_post: $(postQ14files)
 
@@ -39,9 +40,13 @@ results/cod-Q14-cm%.RData: $(MODEL_BIN)
 	mkdir -p results
 	export SCRIPT_INPUT="{ SPECIES = $(COD); CMGROUP = $*; OUTFILE='$@' }"; $(RUN_MODEL)
 
-anim/cod-Q14-cm%.pdf: $(MODEL_BIN)
+anim/cod-Q1-cm%.pdf: $(MODEL_BIN)
 	mkdir -p anim
-	export SCRIPT_INPUT="{ RESFILE='results/cod-Q14-cm$*.RData'; OUTFILE='$@' }"; R --slave < animation.R
+	export SCRIPT_INPUT="{ QUARTERS='1'; RESFILE='results/cod-Q14-cm$*.RData'; OUTFILE='$@' }"; R --slave < animation.R
+
+anim/cod-Q4-cm%.pdf: $(MODEL_BIN)
+	mkdir -p anim
+	export SCRIPT_INPUT="{ QUARTERS='4'; RESFILE='results/cod-Q14-cm$*.RData'; OUTFILE='$@' }"; R --slave < animation.R
 
 post/cod-Q14-cm%.RData: $(MODEL_BIN)
 	mkdir -p post
