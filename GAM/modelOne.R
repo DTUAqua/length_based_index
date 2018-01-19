@@ -140,7 +140,7 @@ dev.off()
 
 
 pdf(paste0("results/mapsQ4-cm",CMGROUP,".pdf"))
- plotMapFit(myidx,pred.ctimes=dQ14$ctime[tsel],pred.years=dQ14$Year[tsel],pred.quarter=dQ14$Quarter[tsel])
+ plotMapFit(myidx,pred.ctimes=dQ14$ctime[tselQ4],pred.years=dQ14$Year[tselQ4],pred.quarter=dQ14$Quarter[tselQ4])
 dev.off()
 
 
