@@ -35,7 +35,7 @@ knots=list(TimeShotHour=seq(0,24,length=6))
 
 EBarea.s$DepthRS = (EBarea.s$Depth - 50)/20
 
-print( system.time( myidx <- getSurveyIdxLength(dQ14,CMGROUP,NULL,0,predD=EBarea.s,model=mymodel,knots=knots,mc.cores=1,pred.ctimes=dQ14$ctime[tsel],pred.years=dQ14$Year[tsel],pred.quarter=dQ14$Quarter[tsel]) ) )
+print( system.time( myidx <- getSurveyIdxLength(dQ14,CMGROUP,NULL,nBoot=1000,predD=EBarea.s,model=mymodel,knots=knots,mc.cores=1,pred.ctimes=dQ14$ctime[tsel],pred.years=dQ14$Year[tsel],pred.quarter=dQ14$Quarter[tsel]) ) )
 
 plotDepthEffect<-function(model, nBoot=4000){
     pd = EBarea.s[rep(1,100),]
@@ -144,6 +144,6 @@ pdf(paste0("results/mapsQ4-cm",CMGROUP,".pdf"))
 dev.off()
 
 
-out<-list(idx = myidx$idx, gc=gc, gc.sd=gc.sd, dc=dc )
+out<-list(idx = myidx$idx, gc=gc, gc.sd=gc.sd, dc=dc, lo=myidx$lo, up=myidx$up )
 save(out,paste0("results/out-cm",CMGROUP,".RData"))
 
