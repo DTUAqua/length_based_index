@@ -1,4 +1,3 @@
-## GAM2 -- increase basis dim
 CMGROUP <- 3
 
 ## For scripting - replace CMGROUP
@@ -24,7 +23,7 @@ dQ14$DepthRS = (dQ14$Depth - 50)/20
 
 dQ14$Gear = factor( dQ14$Gear, levels=names(sort(table(dQ14$Gear),TRUE))) 
 
-mymodel ="Quarter+s(Year,Quarter,bs='re') + Gear + s(utm.x,utm.y,bs='ts',k=144,by=Quarter) + ti(ctime,utm.x,utm.y,d=c(1,2),bs=c('ts','ts'),k=c(22,12)) + DepthRS:Quarter + I(DepthRS^2):Quarter  +s(TimeShotHour,k=6,bs='cc')+offset(log(HaulDur))";
+mymodel ="Quarter+s(Year,Quarter,bs='re') + Gear + s(utm.x,utm.y,bs='ts',k=144,by=Quarter) + ti(ctime,utm.x,utm.y,d=c(1,2),bs=c('ts','ts'),k=c(16,9)) + DepthRS:Quarter + I(DepthRS^2):Quarter  +s(TimeShotHour,k=6,bs='cc')+offset(log(HaulDur))";
 
 tsel = which( !duplicated(dQ14$ctime))
 
@@ -146,5 +145,5 @@ dev.off()
 
 
 out<-list(idx = myidx$idx, gc=gc, gc.sd=gc.sd, dc=dc, lo=myidx$lo, up=myidx$up )
-save(out,file=paste0("results/out-cm",CMGROUP,".RData"))
+save(out,paste0("results/out-cm",CMGROUP,".RData"))
 

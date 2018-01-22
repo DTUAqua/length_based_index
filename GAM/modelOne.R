@@ -145,5 +145,5 @@ dev.off()
 
 
 out<-list(idx = myidx$idx, gc=gc, gc.sd=gc.sd, dc=dc, lo=myidx$lo, up=myidx$up )
-save(out,paste0("results/out-cm",CMGROUP,".RData"))
+save(out,file=paste0("results/out-cm",CMGROUP,".RData"))
 
