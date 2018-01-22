@@ -21,7 +21,7 @@ all_anim: $(animQ1files) $(animQ4files)
 
 all_post: $(postQ14files)
 
-join: all_post
+join:
 	R --slave < join.R
 
 COD='Gadus morhua'

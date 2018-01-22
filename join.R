@@ -5,18 +5,20 @@ getEst <- function(x, what) {
     eval(parse(text=what))
 }
 
+## All fixed effect estimates (Gear, timeofday, Depth) and uncertainties
 beta <- sapply(files, getEst, "beta")
 betaSD <- sapply(files, getEst, "betaSD")
 
+## Log index and uncertainties
 logindex <- sapply(files, getEst, "logindex[,1]")
 logindexSD <- sapply(files, getEst, "logindex[,2]")
 
-## Gear
+## Example: Gear
 i <- grep("Gear", rownames(beta))
 matplot( t(beta[i, ] ), type="b")
 matplot( t(betaSD[i, ] ), type="b")
 
-## Top punkt
+## Parabola vertex
 tpRS <- -.5 * beta["Quarter1:DepthRS",] / beta["Quarter1:I(DepthRS^2)",]
 tp1 <- (tpRS * 20 + 50)
 
