@@ -21,7 +21,7 @@ all_anim: $(animQ1files) $(animQ4files)
 
 all_post: $(postQ14files)
 
-join: all_post
+join:
 	R --slave < join.R
 
 COD='Gadus morhua'
@@ -57,3 +57,7 @@ publish: results
 	echo "Copy result files here..." > ~/public_html/results.txt
 	chmod 755 ~/public_html/results.txt
 	echo "Results are at www.student.dtu.dk/~"$$USER | mail -s "Results have been updated" $$USER@dtu.dk
+
+wget-results:
+	wget http://www.student.dtu.dk/~kaskr/EBcod_results.zip
+	unzip EBcod_results.zip
