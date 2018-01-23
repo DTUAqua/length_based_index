@@ -1,4 +1,4 @@
-CMGROUP <- 3
+CMGROUP <- 33
 
 ## For scripting - replace CMGROUP
 input <- parse(text=Sys.getenv("SCRIPT_INPUT"))
@@ -118,8 +118,9 @@ plotMapFit<-function(m, pred.ctimes,pred.years,pred.quarter){
         sel = which( dQ14$ctime == ctime )
         year = dQ14$Year[sel[1]]
         quarter = pred.quarter[ which(pred.ctimes==ctime) ]
-        
-        fit <- exp(m$gPreds2[[1]][[ which(pred.ctimes==ctime) ]])
+
+        ##cat("time step ",which(pred.ctimes==ctime),"\n")
+        fit <- exp(m$gPreds2[[1]][[ which( unique(dQ14$ctime)==ctime) ]])
         concT = concTransform(log(fit))
  
         plot(EBarea.s$utm.x,EBarea.s$utm.y,col=my.cols[cut(concT,0:length(my.cols)/length(my.cols))],pch=15,cex=0.5,main=paste(year,quarter,colnames(dQ14$N)[CMGROUP]))
@@ -134,7 +135,9 @@ plotMapFit<-function(m, pred.ctimes,pred.years,pred.quarter){
 }
 
 
+##pdf(paste0("results/mapsQ1-cm",CMGROUP,".pdf"))
 pdf(paste0("results/mapsQ1-cm",CMGROUP,".pdf"))
+##pdf("maptest.pdf")
  plotMapFit(myidx,pred.ctimes=dQ14$ctime[tselQ1],pred.years=dQ14$Year[tselQ1],pred.quarter=dQ14$Quarter[tselQ1])
 dev.off()
 
