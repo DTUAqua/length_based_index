@@ -1,6 +1,6 @@
 getSurveyIdxLength <-
     function(x,lengths,myids,nBoot=1000,mc.cores=2,method="REML",predD,
-             model,pred.ctimes,pred.years,pred.quarters,knots=NULL){
+             model,pred.ctimes,pred.years,pred.quarters,knots=NULL,...){
         
         
         if(length(model)<length(lengths)) stop(" length(model) < length(lengths)");
@@ -28,7 +28,7 @@ getSurveyIdxLength <-
             
             formu = as.formula( paste( "y ~",model[a]));
             
-            print(system.time(m<-tryCatch.W.E(gam(formu,data=ddd,method=method,family=nb(),knots=knots))$value));
+            print(system.time(m<-tryCatch.W.E(gam(formu,data=ddd,method=method,family=nb(),knots=knots,...))$value));
 
             if(class(m)[2] == "error") {
                 print(m)
@@ -38,63 +38,66 @@ getSurveyIdxLength <-
             ## Calculate total log-likelihood
             totll = logLik(m)
             
-            if(is.null(predD)) stop("predD is null") ##predD=subset(ddd,haul.id %in% myids);
+            ##if(!is.null(predD)){ ## stop("predD is null") ##predD=subset(ddd,haul.id %in% myids);
             res=numeric(length(pred.ctimes));
             lores=res;
             upres=res;
             gp2=list()
+            gPred=NULL;
 
-            predD$TimeShotHour=mean(ddd$TimeShotHour)
-            predD$Ship=names(which.max(summary(ddd$Ship)))
-            predD$timeOfYear=mean(ddd$timeOfYear);
-            predD$HaulDur=30.0
-            predD$Gear=myGear;
-            predD$dum=0;
-            
-            for(y in 1:length(pred.ctimes)){ 
-                ## take care of years with all zeroes
-                ##if(all(ddd$y[ddd$Year==y]==0)){
-                ##    res[which(as.character(yearRange)==y)]=0;
-                ##    upre*s[which(as.character(yearRange)==y)] = 0;
-                ##    lores[which(as.character(yearRange)==y)] = 0;
-                ##    next;
-                ##}
-                ## OBS: effects that should be removed should be included here
-                predD$Year=pred.years[y]; 
-                predD$ctime=pred.ctimes[y] ##as.numeric(as.character(y));
-                predD$Quarter=pred.quarters[y]
+            if(!is.null(predD)){
+                predD$TimeShotHour=mean(ddd$TimeShotHour)
+                predD$Ship=names(which.max(summary(ddd$Ship)))
+                predD$timeOfYear=mean(ddd$timeOfYear);
+                predD$HaulDur=30.0
+                predD$Gear=myGear;
+                predD$dum=0;
                 
-                p=try(predict(m,newdata=predD,newdata.guaranteed=TRUE));
-                
-                ## take care of failing predictions
-                ##if(!is.numeric(p)) {
-                ##    res[which(as.character(yearRange)==y)]=0;
-                ##    upres[which(as.character(yearRange)==y)] = 0;
-                ##    lores[which(as.character(yearRange)==y)] = 0;
-                ##    next;
-                ##}
-
-                res[y] = sum(exp(p));
-                gPred=p
-                gp2[[y]]=gPred;
-                if(nBoot>10){
-                    Xp.1=predict(m,newdata=predD,type="lpmatrix");
-                    library(MASS)
-                    brp.1=mvrnorm(n=nBoot,coef(m),m$Vp);
-                    OS.pos = matrix(0,nrow(predD),nBoot);
-                    terms.pos=terms(m)
-                    if(!is.null(m$offset)){
-                        off.num.pos <- attr(terms.pos, "offset")
-                        for (i in off.num.pos) OS.pos <- OS.pos + eval(attr(terms.pos, 
-                                                                            "variables")[[i + 1]], predD)
-                    }
-                    rep1=exp(Xp.1%*%t(brp.1)+OS.pos);
+                for(y in 1:length(pred.ctimes)){ 
+                    ## take care of years with all zeroes
+                    ##if(all(ddd$y[ddd$Year==y]==0)){
+                    ##    res[which(as.character(yearRange)==y)]=0;
+                    ##    upre*s[which(as.character(yearRange)==y)] = 0;
+                    ##    lores[which(as.character(yearRange)==y)] = 0;
+                    ##    next;
+                    ##}
+                    ## OBS: effects that should be removed should be included here
+                    predD$Year=pred.years[y]; 
+                    predD$ctime=pred.ctimes[y] ##as.numeric(as.character(y));
+                    predD$Quarter=pred.quarters[y]
                     
-                    idxSamp = colSums(rep1);
-                    upres[y] = quantile(idxSamp,0.975);
-                    lores[y] = quantile(idxSamp,0.025);
-                }
-            } ## rof years
+                    p=try(predict(m,newdata=predD,newdata.guaranteed=TRUE));
+                    
+                    ## take care of failing predictions
+                    ##if(!is.numeric(p)) {
+                    ##    res[which(as.character(yearRange)==y)]=0;
+                    ##    upres[which(as.character(yearRange)==y)] = 0;
+                    ##    lores[which(as.character(yearRange)==y)] = 0;
+                    ##    next;
+                ##}
+                    
+                    res[y] = sum(exp(p));
+                    gPred=p
+                    gp2[[y]]=gPred;
+                    if(nBoot>10){
+                        Xp.1=predict(m,newdata=predD,type="lpmatrix");
+                        library(MASS)
+                        brp.1=mvrnorm(n=nBoot,coef(m),m$Vp);
+                        OS.pos = matrix(0,nrow(predD),nBoot);
+                        terms.pos=terms(m)
+                        if(!is.null(m$offset)){
+                            off.num.pos <- attr(terms.pos, "offset")
+                            for (i in off.num.pos) OS.pos <- OS.pos + eval(attr(terms.pos, 
+                                                                                "variables")[[i + 1]], predD)
+                        }
+                        rep1=exp(Xp.1%*%t(brp.1)+OS.pos);
+                        
+                        idxSamp = colSums(rep1);
+                        upres[y] = quantile(idxSamp,0.975);
+                        lores[y] = quantile(idxSamp,0.025);
+                    }
+                } ## rof years
+            }## fi  !is.null(predD)
             list(res=res,m=m,lo=lores,up=upres,gp=gPred,ll=totll,gp2=gp2);
         }## end do.one
         noLengths=length(lengths);
