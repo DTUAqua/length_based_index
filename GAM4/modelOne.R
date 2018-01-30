@@ -18,13 +18,13 @@ load(datafile)
 
 OUTFILE = paste0("results/",CMGROUP,".RData")
 
-source("fun.R")
+source("../GAM/fun.R")
 
 dQ14$DepthRS = (dQ14$Depth - 50)/20
 
 dQ14$Gear = factor( dQ14$Gear, levels=names(sort(table(dQ14$Gear),TRUE))) 
 
-mymodel ="Quarter+s(Year,Quarter,bs='re') + Gear + s(utm.x,utm.y,bs='ds',m=c(1,.5),k=144,by=Quarter) + ti(ctime,utm.x,utm.y,d=c(1,2),bs=c('ts','ds'),k=c(16,9),m=c(1,.5)) + DepthRS:Quarter + I(DepthRS^2):Quarter  +s(TimeShotHour,k=6,bs='cc')+offset(log(HaulDur))";
+mymodel ="Quarter+s(Year,Quarter,bs='re') + Gear + s(utm.x,utm.y,bs='ds',m=c(1,.5),k=144,by=Quarter) + ti(ctime,utm.x,utm.y,d=c(1,2),bs=c('cs','ds'),k=c(16,9),m=list(NULL,c(1,.5))) + DepthRS:Quarter + I(DepthRS^2):Quarter  +s(TimeShotHour,k=6,bs='cc')+offset(log(HaulDur))";
 
 tsel = which( !duplicated(dQ14$ctime))
 
@@ -120,7 +120,7 @@ plotMapFit<-function(m, pred.ctimes,pred.years,pred.quarter){
         year = dQ14$Year[sel[1]]
         quarter = pred.quarter[ which(pred.ctimes==ctime) ]
         
-        fit <- exp(m$gPreds2[[1]][[ which(pred.ctimes==ctime) ]])
+        fit <- exp(m$gPreds2[[1]][[ which( unique(dQ14$ctime)==ctime) ]])
         concT = concTransform(log(fit))
  
         plot(EBarea.s$utm.x,EBarea.s$utm.y,col=my.cols[cut(concT,0:length(my.cols)/length(my.cols))],pch=15,cex=0.5,main=paste(year,quarter,colnames(dQ14$N)[CMGROUP]))
