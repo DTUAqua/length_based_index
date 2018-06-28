@@ -14,15 +14,18 @@ logindex <- sapply(files, getEst, "logindex[,1]")
 logindexSD <- sapply(files, getEst, "logindex[,2]")
 
 ## Example: Gear
+pdf("LGCPgear.pdf",width=10,height=8)
+par(mfrow=c(2,1),mar=c(4,3,1,1))
 i <- grep("Gear", rownames(beta))
 mat <- t(beta[i, ] )
-matplot( mat, type="b", main="Gear effect (relative to TVL)", xlab="Size group", ylab="log(Effect)")
-legend("bottomright", colnames(mat), pch=c(1L:9L, 0L, letters, LETTERS),  col=1:6)
+matplot( mat[,-11], type="b", main="Gear effect (relative to TVL = 0)", xlab="Size group", ylab="log(Effect)")
+gearNames <- gsub("Gear","",colnames(mat))
+##legend("bottomright", gearNames[-11], pch=c(1L:9L, 0L, letters, LETTERS),  col=1:6)
 
 mat <- t(betaSD[i, ] )
-matplot( mat, type="b", main="Gear effect Std. Dev.", xlab="Size group", ylab="SD(log(Effect))")
-legend("topright", colnames(mat), pch=c(1L:9L, 0L, letters, LETTERS),  col=1:6)
-
+matplot( mat[,-11], type="b", main="Gear effect Std. Dev.", xlab="Size group", ylab="SD(log(Effect))")
+legend("topright", gearNames[-11], pch=c(1L:9L, 0L, letters, LETTERS),  col=1:6)
+dev.off()
 
 ## Parabola vertex
 tpRS <- -.5 * beta["Quarter1:DepthRS",] / beta["Quarter1:I(DepthRS^2)",]
@@ -41,6 +44,8 @@ matsd <- cbind(sd1, sd4)
 
 ## Add sds to preferred depth:
 ## mat <- cbind(mat, mat-matsd, mat+matsd)
-
+pdf("LGCPprefDepth.pdf",width=10,height=8)
+par(mfrow=c(1,1))
 matplot(mat, type="b", main="Preferred depth", xlab="Size group", ylab="Depth (m)", col=1:2)
 legend("topleft", c("Quarter 1", "Quarter 4"), pch=c(1L:9L, 0L, letters, LETTERS),  col=1:2)
+dev.off()

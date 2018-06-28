@@ -9,7 +9,7 @@ datafile="../EBcod.RData"
 if(!file.exists(datafile)){
     
     sti="~/Documents/DATRAS";
-    years=1991:2017
+    years=1991:2018
     genus="Gadus"
     bfamily="morhua";
     
@@ -49,7 +49,10 @@ dAll[[2]]$utm.y = utmcoords$Y
 
 ## add spectrum (OBS last group is NOT a plus group, do we want that instead?)
 ##dAll<-addSpectrum(dAll,cm.breaks=seq(5,100,by=1))
-dAll=addSpectrum(dAll,cm.breaks=c(0,10,14,16,18,20:41,43,45,47,50,55,61,200))
+## Margit wants: 5 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48 50 52 54 56 58 60 62 64 66 68 70 72 74 76 78 80 85 90 95 100 105 110 115 120
+##dAll=addSpectrum(dAll,cm.breaks=c(0,10,14,16,18,20:41,43,45,47,50,55,61,200))
+dAll=addSpectrum(dAll,cm.breaks=c(0,seq(10,60,by=2),200)) ##,seq(85,120,by=5),200))
+
 
 ## make "continuous" time variable, discretized to quarterly to prevent too much time wiggliness
 dAll[[2]]$ctime = as.numeric(dAll$Year)+dAll$timeOfYear
@@ -162,7 +165,7 @@ EBarea.s = subset( EBarea.s, utm.y < max(dQ14$utm.y) )
 
 ## Almost no data from 2017 Q4, omit
 xtabs(~ Year + Quarter, dQ14[[2]])
-dQ14 = subset( dQ14, !( Year=="2017" & Quarter=="4"))
+##dQ14 = subset( dQ14, !( Year=="2017" & Quarter=="4"))
 
 DepthQs = quantile(dQ14$Depth,probs=c(0.005,0.995))
 
@@ -180,4 +183,9 @@ dQ14$timeOfDay[  dQ14$TimeShotHour<7 | dQ14$TimeShotHour>17  ] = 2
 dQ14$timeOfDay[ dQ14$TimeShotHour>10 & dQ14$TimeShotHour<14  ] = 3
 
 
-save(dQ14,EBarea.s,coastlines,file="EBcodProcessedData.RData")
+save(dQ14,EBarea.s,coastlines,file="../EBcodProcessedData.RData")
+
+###
+my.palette<-colorRampPalette(c("darkblue","mediumblue","lightblue1"))
+my.palette.vec=my.palette(100);
+plot(EBarea.s$utm.x,EBarea.s$utm.y,col=rev(my.palette.vec)[cut(EBarea.s$Depth,100)],pch=16,cex=0.5)
