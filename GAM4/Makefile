@@ -2,8 +2,8 @@
 
 ## Use parallel BLAS for all runs
 export OMP_NUM_THREADS=1
-export MAX_DURATION=16:00:00
-export MAX_MEMORY=8gb
+export MAX_DURATION=24:00:00
+export MAX_MEMORY=12gb
 
 FIRST_LENGTH_GROUP = 1
 LAST_LENGTH_GROUP = 27
