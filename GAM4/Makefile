@@ -6,7 +6,7 @@ export MAX_DURATION=16:00:00
 export MAX_MEMORY=8gb
 
 FIRST_LENGTH_GROUP = 1
-LAST_LENGTH_GROUP = 33
+LAST_LENGTH_GROUP = 27
 
 lengthgroups:= $(shell echo 'cat(formatC($(FIRST_LENGTH_GROUP):$(LAST_LENGTH_GROUP), digits=3, flag="0"))' | R --slave)
 resultsfiles:=$(foreach cm,$(lengthgroups),results/out-cm$(cm).RData) 
