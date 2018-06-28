@@ -24,7 +24,7 @@ dQ14$DepthRS = (dQ14$Depth - 50)/20
 
 dQ14$Gear = factor( dQ14$Gear, levels=names(sort(table(dQ14$Gear),TRUE))) 
 
-mymodel ="Quarter+s(Year,Quarter,bs='re') + Gear + s(utm.x,utm.y,bs='ds',m=c(1,.5),k=144,by=Quarter) + ti(ctime,utm.x,utm.y,d=c(1,2),bs=c('cs','ds'),k=c(16,9),m=list(NULL,c(1,.5))) + DepthRS:Quarter + I(DepthRS^2):Quarter  +s(TimeShotHour,k=6,bs='cc')+offset(log(HaulDur))";
+mymodel ="Quarter+s(Year,Quarter,bs='re') + Gear + te(ctime,utm.x,utm.y,d=c(1,1,1),bs=c('ds','ds','ds'),k=c(12,8,8),m=list(c(1,0),c(1,0),c(1,0)),by=Quarter) + DepthRS:Quarter + I(DepthRS^2):Quarter  +s(TimeShotHour,k=6,bs='cc')+offset(log(HaulDur))"
 
 tsel = which( !duplicated(dQ14$ctime))
 
