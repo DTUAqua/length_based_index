@@ -51,7 +51,7 @@ dAll[[2]]$utm.y = utmcoords$Y
 ##dAll<-addSpectrum(dAll,cm.breaks=seq(5,100,by=1))
 ## Margit wants: 5 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48 50 52 54 56 58 60 62 64 66 68 70 72 74 76 78 80 85 90 95 100 105 110 115 120
 ##dAll=addSpectrum(dAll,cm.breaks=c(0,10,14,16,18,20:41,43,45,47,50,55,61,200))
-dAll=addSpectrum(dAll,cm.breaks=c(0,seq(10,60,by=2),200)) ##,seq(85,120,by=5),200))
+dAll=addSpectrum(dAll,cm.breaks=c(0,10,14,16,18,20:41,42,44,46,48,52,56,60,200))
 
 
 ## make "continuous" time variable, discretized to quarterly to prevent too much time wiggliness
