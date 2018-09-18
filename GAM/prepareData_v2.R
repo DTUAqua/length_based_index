@@ -51,7 +51,7 @@ dAll[[2]]$utm.y = utmcoords$Y
 ##dAll<-addSpectrum(dAll,cm.breaks=seq(5,100,by=1))
 ## Margit wants: 5 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48 50 52 54 56 58 60 62 64 66 68 70 72 74 76 78 80 85 90 95 100 105 110 115 120
 ##dAll=addSpectrum(dAll,cm.breaks=c(0,10,14,16,18,20:41,43,45,47,50,55,61,200))
-dAll=addSpectrum(dAll,cm.breaks=c(0,10,14,16,18,20:41,42,44,46,48,52,56,60,200))
+dAll=addSpectrum(dAll,cm.breaks=c(0,10,12,14,16,18,20:41,42,44,46,48,50,52,54,56,58,60,200))
 
 
 ## make "continuous" time variable, discretized to quarterly to prevent too much time wiggliness
@@ -103,8 +103,8 @@ depthModel=lm( Depth ~ depth2, data=dQ14[[2]])
 
 knots=list(TimeShotHour=seq(0,24,length=6))
 
-## Remove Kattegat/Skagerrak (only one gear here)
-dQ14 = subset(dQ14,!ICES_SUB %in% c(20,21)) 
+## include a bit of kattegat to improve edge estimates
+dQ14 = subset(dQ14,!ICES_SUB %in% c(20,21) | lat < 56.5) 
 
 
 ## Add ICES areas
@@ -116,7 +116,7 @@ xtra <- over(bathy, shp)
 bathy$ICES_SUB = xtra$ICES_SUB
 
 ## Extract EBcod area grid with depths (25:32)
-EBarea<-subset(bathy, ICES_SUB %in% as.character(25:32))
+EBarea<-subset(bathy, ICES_SUB %in% as.character(22:32))
 
 gridutm = LongLatToUTM(EBarea$lon,EBarea$lat,zone=myzone)
 EBarea$utm.x = gridutm$X
@@ -183,10 +183,46 @@ dQ14$timeOfDay = 1
 dQ14$timeOfDay[  dQ14$TimeShotHour<7 | dQ14$TimeShotHour>17  ] = 2
 dQ14$timeOfDay[ dQ14$TimeShotHour>10 & dQ14$TimeShotHour<14  ] = 3
 
+##WBEBarea.s<-EBarea.s
+##EBarea.s<-subset(EBarea.s, ICES_SUB %in% as.character(25:32))
+pvec=array(NA,dim=c(ncol(dQ14$N),nrow(EBarea.s),length(unique(dQ14$ctime))))
+pvecs = list()
 
-save(dQ14,EBarea.s,coastlines,file="../EBcodProcessedData.RData")
+## EB cod area 25+
+pvecEB.1 = as.numeric(EBarea.s$ICES_SUB %in% as.character(25:32))
+for(lg in 1:ncol(dQ14$N)){
+    for(ct in 1:length(unique(dQ14$ctime))){
+        pvec[lg,,ct] = pvecEB.1
+    }
+}
+pvecs[[1]]<-pvec
+### EB cod 13 degrees
+pvecEB.2 = as.numeric(EBarea.s$lon>13)
+for(lg in 1:ncol(dQ14$N)){
+    for(ct in 1:length(unique(dQ14$ctime))){
+        pvec[lg,,ct] = pvecEB.2
+    }
+}
+pvecs[[2]]<-pvec
+## WB cod (13 degrees)
+pvecEB.3 = as.numeric(EBarea.s$lon<=13)
+for(lg in 1:ncol(dQ14$N)){
+    for(ct in 1:length(unique(dQ14$ctime))){
+        pvec[lg,,ct] = pvecEB.3
+    }
+}
+pvecs[[3]]<-pvec
+
+
+
+save(dQ14,EBarea.s,pvecs,coastlines,file="../EBcodProcessedData.RData")
 
 ###
 my.palette<-colorRampPalette(c("darkblue","mediumblue","lightblue1"))
 my.palette.vec=my.palette(100);
 plot(EBarea.s$utm.x,EBarea.s$utm.y,col=rev(my.palette.vec)[cut(EBarea.s$Depth,100)],pch=16,cex=0.5)
+
+
+plot(WBEBarea.s$utm.x,WBEBarea.s$utm.y,col=rev(my.palette.vec)[cut(WBEBarea.s$Depth,100)],pch=16,cex=0.5)
+
+###
