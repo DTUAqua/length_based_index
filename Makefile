@@ -7,7 +7,7 @@ export MAX_MEMORY=35gb
 export QUEUE=computebigmem
 
 FIRST_LENGTH_GROUP = 1
-LAST_LENGTH_GROUP = 33
+LAST_LENGTH_GROUP = 38
 
 lengthgroups:= $(shell echo 'cat(formatC($(FIRST_LENGTH_GROUP):$(LAST_LENGTH_GROUP), digits=3, flag="0"))' | R --slave)
 resultsQ14files:=$(foreach cm,$(lengthgroups),results/cod-Q14-cm$(cm).RData)
