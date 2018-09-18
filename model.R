@@ -112,6 +112,7 @@ data$Q0 <- Q0
 
 data$Apredict <- Apredict
 data$pos_predict <- area$pos
+data$p <- matrix(1, nrow(data$Apredict), nlevels(data$time))
 
 data <- data[!sapply(data,is.character)]
 data <- data[!sapply(data,is.logical)]

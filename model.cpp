@@ -19,6 +19,7 @@ Type objective_function<Type>::operator() ()
   /* Prediction */
   DATA_SPARSE_MATRIX (Apredict);
   DATA_FACTOR     (pos_predict); /* Length = fine scale area. nlevels = num grid cells */
+  DATA_ARRAY         (p);        /* Dim = nrows(Apredict) x nlevels(time) */
 
   /* Fixed effects */
   PARAMETER          (logdelta); /* For random field (corr) */
@@ -81,7 +82,7 @@ Type objective_function<Type>::operator() ()
   for(int j=0; j<dens.cols(); j++){ // Time
     for(int i=0; i<dens.rows(); i++){ // Space
       for(int k=0; k<NLEVELS(sizeGroup); k++){ // Size
-        dens(i, j) += exp(lin_predictor(i) + etamean(k, j) + eta(pos_predict(i), j, k));
+        dens(i, j) += p(i, j) * exp(lin_predictor(i) + etamean(k, j) + eta(pos_predict(i), j, k));
       }
       dens(i, j) /= NLEVELS(sizeGroup);
     }
