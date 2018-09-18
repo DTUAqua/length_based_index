@@ -5,7 +5,7 @@ KM       <- 6
 MINSIZE  <- 4
 MAXSIZE  <- 120
 MINYEAR  <- 1991
-MAXYEAR  <- 2017
+MAXYEAR  <- 2018
 BY       <- 1
 CMGROUP <- MINSIZE+1
 DATFILE  <- "EBcodProcessedData.RData"
@@ -30,6 +30,14 @@ area <- local({
     EBarea.s
 })
 stopifnot( class(area) == "data.frame" )
+
+## Integration weights
+pvecs <- local({
+    load(DATFILE)
+    pvecs
+})
+stopifnot( class(pvecs) == "list" )
+pvecs <- lapply(pvecs, function(x) x[CMGROUP, , ])
 
 ## Make grid
 library(gridConstruct)
@@ -125,6 +133,10 @@ if (nlevels(d$sizeGroup) <= 1) {
     map$tphi_size <- factor(NA)
 }
 
+## Assert pvec dimensions are right
+stopifnot(all( sapply(pvecs, nrow) == nrow(data$Apredict) ) )
+stopifnot(all( sapply(pvecs, ncol) == nlevels(data$time) ) )
+
 library(TMB)
 compile("model.cpp")
 dyn.load(dynlib("model"))
@@ -151,14 +163,21 @@ runSymbolicAnalysis(obj)
 system.time(obj$fn())
 
 system.time(opt <- nlminb(obj$par, obj$fn, obj$gr))
+hessian <- optimHess(opt$par, obj$fn, obj$gr)
 
 ## Quarter 1 sdreport
-system.time(sdr1 <- sdreport(obj))
+sdr1 <- lapply(pvecs, function(p) {
+    obj$env$data$p <- p
+    sdreport(obj, hessian.fixed=hessian)
+})
 
 ## Quarter 4 sdreport
-area$Quarter[] <- "4"
-obj$env$data$Apredict <- as(sparse.model.matrix( form, data=area), "dgTMatrix")
-system.time(sdr4 <- sdreport(obj, hessian.fixed=solve(sdr1$cov.fixed)))
+sdr4 <- lapply(pvecs, function(p) {
+    obj$env$data$p <- p
+    area$Quarter[] <- "4"
+    obj$env$data$Apredict <- as(sparse.model.matrix( form, data=area), "dgTMatrix")
+    sdreport(obj, hessian.fixed=hessian)
+})
 
 if(FALSE) { ## Skip bias correction for now
     system.time(sdr2 <- sdreport(obj,bias.correct=TRUE,hessian.fixed=solve(sdr$cov.fixed)))
