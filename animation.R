@@ -1,4 +1,4 @@
-RESFILE <- "results/cod-Q14-cm0008.RData"
+RESFILE <- "results/cod-Q14-cm0024.RData"
 OUTFILE <- "anim.pdf"
 QUARTERS <- "1"
 
@@ -19,6 +19,7 @@ library(rgdal)
 ## Get reported density
 dyn.load(dynlib("model"))
 lpb <- obj$env$last.par.best
+obj$env$data$p[] <- 1
 obj$env$type <- "Fun" ## No AD !
 rep4 <- obj$report(lpb) ## Q4 !
 ## Swap Q1/Q4 columns:
@@ -37,8 +38,8 @@ rep$dens[, timesQ1 ] <- rep1$dens[ , timesQ1 ]
 
 ## For each time, attach spatial 'index' to area and plot:
 pdf(OUTFILE)
-utmx <- seq(4.5e+05, 1.065e+06, length=nlevels(area$cututmx) + 1)
-utmy <- seq(5.993e+06, 6.558e+06, length=nlevels(area$cututmy) + 1)
+utmx <- seq(min(area$utm.x), max(area$utm.x), length=nlevels(area$cututmx) + 1)
+utmy <- seq(min(area$utm.y), max(area$utm.y), length=nlevels(area$cututmy) + 1)
 utmx <- utmx[-1] - diff(utmx)/2
 utmy <- utmy[-1] - diff(utmy)/2
 for (i in 1:ncol(rep$dens)) {
