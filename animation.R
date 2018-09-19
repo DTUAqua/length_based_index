@@ -38,10 +38,11 @@ rep$dens[, timesQ1 ] <- rep1$dens[ , timesQ1 ]
 
 ## For each time, attach spatial 'index' to area and plot:
 pdf(OUTFILE)
-utmx <- seq(min(area$utm.x), max(area$utm.x), length=nlevels(area$cututmx) + 1)
-utmy <- seq(min(area$utm.y), max(area$utm.y), length=nlevels(area$cututmy) + 1)
-utmx <- utmx[-1] - diff(utmx)/2
-utmy <- utmy[-1] - diff(utmy)/2
+grid.size.m = 2500
+utmx <- seq(min(area$utm.x)-1,max(area$utm.x)+grid.size.m,by=grid.size.m)
+utmy <- seq(min(area$utm.y)-1,max(area$utm.y)+grid.size.m,by=grid.size.m)
+area$cututmx = cut(area$utm.x,utmx)
+area$cututmy = cut(area$utm.y,utmy)
 for (i in 1:ncol(rep$dens)) {
     quarter <- substring(times[i],6,6)
     if(quarter %in% QUARTERS) {
