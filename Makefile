@@ -1,10 +1,10 @@
 .PHONY = all
 
 ## Use parallel BLAS for all runs
-export OMP_NUM_THREADS=8
+export OMP_NUM_THREADS=2
 export MAX_DURATION=01:00:00:00
 export MAX_MEMORY=35gb
-export QUEUE=computebigmem
+export QUEUE=hpc
 
 FIRST_LENGTH_GROUP = 1
 LAST_LENGTH_GROUP = 38
