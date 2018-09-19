@@ -53,10 +53,10 @@ post/cod-Q14-cm%.RData: $(MODEL_BIN)
 	export SCRIPT_INPUT="{ RESFILE='results/cod-Q14-cm$*.RData'; OUTFILE='$@' }"; R --slave < postprocess.R
 
 ## Optional: Send mail when done + link to results
-publish: results
-	echo "Copy result files here..." > ~/public_html/results.txt
-	chmod 755 ~/public_html/results.txt
-	echo "Results are at www.student.dtu.dk/~"$$USER | mail -s "Results have been updated" $$USER@dtu.dk
+publish: all_anim all_post
+	zip -r EBcod_results.zip anim post
+	cp EBcod_results.zip ~/public_html
+	chmod 755 ~/public_html/EBcod_results.zip
 
 wget-results:
 	wget http://www.student.dtu.dk/~kaskr/EBcod_results.zip
