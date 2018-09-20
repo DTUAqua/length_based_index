@@ -36,6 +36,11 @@ rep <- rep4
 timesQ1 <- substring(times,5,6) == ".1"
 rep$dens[, timesQ1 ] <- rep1$dens[ , timesQ1 ]
 
+## Dens output
+OUTFILE_TMP <- sub(".pdf", ".RData", OUTFILE)
+dens <- rep$dens
+save(dens, file=OUTFILE_TMP)
+
 ## For each time, attach spatial 'index' to area and plot:
 pdf(OUTFILE)
 grid.size.m = 2500
