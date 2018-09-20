@@ -1,4 +1,4 @@
-RESFILE <- "results/cod-Q14-cm0012.RData"
+RESFILE <- "results/cod-Q14-cm0024.RData"
 OUTFILE <- "post.RData"
 
 ## For scripting
@@ -31,6 +31,6 @@ out <- lapply(1:length(sdr1), function(i) {
     betaSD <- as.list(sdr1, "Std")$beta
 
     ##
-    list(logindex, beta, betaSD)
+    list(logindex=logindex, beta=beta, betaSD=betaSD)
 })
 save(out, file=OUTFILE)

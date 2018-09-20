@@ -1,8 +1,12 @@
 files <- dir("post", full=TRUE)
 
-getEst <- function(x, what) {
+getEst <- function(x, what, i=1) {
     load(x)
-    eval(parse(text=what))
+    x <- out[[i]]
+    if (is.null(names(x)))
+        names(x) <- c("logindex", "beta", "betaSD")
+    x <- as.environment(x)
+    eval(parse(text=what), envir=x)
 }
 
 ## All fixed effect estimates (Gear, timeofday, Depth) and uncertainties
@@ -10,8 +14,9 @@ beta <- sapply(files, getEst, "beta")
 betaSD <- sapply(files, getEst, "betaSD")
 
 ## Log index and uncertainties
-logindex <- sapply(files, getEst, "logindex[,1]")
-logindexSD <- sapply(files, getEst, "logindex[,2]")
+logindex1 <- lapply(files, getEst, "logindex", i=1)
+logindex2 <- lapply(files, getEst, "logindex", i=2)
+logindex3 <- lapply(files, getEst, "logindex", i=3)
 
 ## Example: Gear
 pdf("LGCPgear.pdf",width=10,height=8)
