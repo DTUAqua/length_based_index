@@ -38,8 +38,17 @@ Type objective_function<Type>::operator() ()
   Type delta = exp(logdelta);
   Type kappa = exp(logkappa);
   Type sigma = exp(logsigma);
-  vector<Type> phi_time = tphi_time / sqrt( 1.0 + tphi_time * tphi_time );
+  vector<Type> pc_time = tphi_time / sqrt( 1.0 + tphi_time * tphi_time );
   Type phi_size = tphi_size / sqrt( 1.0 + tphi_size * tphi_size );
+  /* Partial corr -> phi */
+  vector<Type> gamma(3);
+  gamma <<
+    Type(1),
+    pc_time[0],
+    (1-pc_time[0]*pc_time[0])*pc_time[1]+pc_time[0]*pc_time[0];
+  matrix<Type> M(2, 2);
+  M << gamma[0], gamma[1], gamma[1], gamma[0];
+  vector<Type> phi_time = atomic::matinv(M) * gamma.tail(2).matrix();
 
   /* Random fields */
   SparseMatrix<Type> Q = kappa * (Q0 + delta * I);
@@ -94,6 +103,7 @@ Type objective_function<Type>::operator() ()
   REPORT(logindex);
   REPORT(dens);
   REPORT(nldens_time.cov(100));
+  REPORT(phi_time);
 
   return nll;
 
