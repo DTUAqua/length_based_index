@@ -57,9 +57,9 @@ cm.mid[ 1 ] = 9
 ##for(sm in 1:length(splitModels)){
 splitModel = splitModels[[MODELNR]]
 
-for(ll in 1:(dim(alldens)[2]) ){
+for(ll in 1:(dim(alldens)[3]) ){
     ##cat("Split model ", sm,"/",length(splitModels), " length ", ll, "/", dim(alldens)[2],"\n")
-    for( tt in 1:(dim(alldens)[3])){
+    for( tt in 1:(dim(alldens)[2])){
         pwest = splitIt( cm.mid[ll], ys[tt] )
         alldens.split[,tt,ll] = pwest            
     }
