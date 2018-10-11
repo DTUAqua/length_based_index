@@ -9,7 +9,7 @@ eval(input)
 library(DATRAS)
 library(parallel)
 library(mgcv)
-load("~/Documents/EBcod/EWsplit/splitModels.RData")
+load("splitModels.RData")
 datafile = "../EBcodProcessedData.RData"
 load(datafile)
 
