@@ -22,4 +22,5 @@ MODEL_SRC = splitalldens.R
 alldenssplit-%.RData: $(MODEL_SRC)
 	export SCRIPT_INPUT="{ MODELNR = $*; OUTFILE='$@' }"; $(RUN_MODEL)
 
-
+get-results:
+	scp cabe@transfer.gbar.dtu.dk:length_based_index/WBcod/*.RData .
