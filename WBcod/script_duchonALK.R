@@ -8,6 +8,8 @@ load("splitModels.RData")
 
 baselines=c(rep(0,5),rep(1,4))
 settings = data.frame( modelnr = c(1:9,1:9,-1), baseline=c(rep(baselines,2),-1), fixedSplit=c(rep(NA,18),13), soft=c(rep(1,9),rep(0,9),0))
+library(xtable)
+print( xtable( settings,digits=0))
 
 dQ14$yqf = factor(paste(dQ14$Year, dQ14$Quarter,sep=":"))
 Q1files <- dir("../anim", pattern=glob2rx("*Q1*.RData"),full=TRUE)

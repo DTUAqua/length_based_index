@@ -15,7 +15,8 @@ library(mgcv)
 load("splitModels.RData")
 
 baselines=c(rep(0,5),rep(1,4))
-settings = data.frame( modelnr = c(1:9,1:9,-1), baseline=c(rep(baselines,2),-1), fixedSplit=c(rep(NA,18),13), soft=c(rep(1,9),rep(0,9),0))
+##settings = data.frame( modelnr = c(1:9,1:9,-1), baseline=c(rep(baselines,2),-1), fixedSplit=c(rep(NA,18),13), soft=c(rep(1,9),rep(0,9),0))
+settings = data.frame( modelnr = c(1:9,1:9,-1,2), baseline=c(rep(baselines,2),-1,0), fixedSplit=c(rep(NA,18),13,NA), soft=c(rep(1,9),rep(0,9),0,2))
 
 dQ14$yqf = factor(paste(dQ14$Year, dQ14$Quarter,sep=":"))
 Q1files <- dir("../anim", pattern=glob2rx("*Q1*.RData"),full=TRUE)
@@ -82,7 +83,7 @@ setting = SETTING
 
         dQ14[[1]]$length_cm = dQ14[[1]]$LngtCm
         print(nrow(dQ14[[1]]))
-        dQ14[[1]] = merge( dQ14[[1]], dQ14[[2]][,c("Year","Month","Day","Quarter","lon","haul.id")],by="haul.id",all.x=TRUE,suffixes=c("",".y"))
+        dQ14[[1]] = merge( dQ14[[1]], dQ14[[2]][,c("Year","Month","Day","Quarter","lon","ICES_SUB","haul.id")],by="haul.id",all.x=TRUE,suffixes=c("",".y"))
         print(nrow(dQ14[[1]]))
         
         dQ14[[1]]$ctime = as.numeric(as.character(dQ14[[1]]$Year)) + (dQ14[[1]]$Month-1)/12 + (dQ14[[1]]$Day-1)/365
@@ -102,6 +103,10 @@ setting = SETTING
         
         probw=predict(splitModels[[modelnr]],newdata=dQ14[[1]][sel,],type="response")
         dQ14[[1]][sel,"ProbWest"]=probw
+        if(settings$soft==2){
+            dQ14[[1]]$ProbWest[ as.numeric(as.character(dQ14[[1]]$ICES_SUB)) > 24 ] = 0
+            dQ14[[1]]$ProbWest[ as.numeric(as.character(dQ14[[1]]$ICES_SUB)) < 24 ] = 1
+        }    
         xtabs(is.na(ProbWest) ~ Year + Age + Quarter,data=dQ14[[1]]) ## all are now NA!
         xtabs(!is.na(ProbWest) ~ Year + Age + Quarter,data=dQ14[[1]]) ## all are now NA!
         summary(dQ14[[1]][is.na(dQ14[[1]]$ProbWest),])
@@ -124,9 +129,18 @@ setting = SETTING
         load(paste0("alldenssplit-",modelnr,".RData"))
         if(settings$soft[setting] == 1){
             alldens.prod = alldens * alldens.split
-        } else {
+        } else if(settings$soft[setting] == 0 ) {
             ## hard split
             alldens.prod = alldens * as.numeric(alldens.split>0.5)
+        } else {
+            ## exclude 25+
+            sel = which(as.numeric(as.character(EBarea.s$ICES_SUB))<25)
+            EBarea.s = EBarea.s[sel,]
+            alldens = alldens[sel,,]
+            alldens.split = alldens.split[sel,,]
+            sel2 = which(as.numeric(as.character(EBarea.s$ICES_SUB))<24)
+            alldens.split[sel2,,] = 1
+            alldens.prod = alldens * alldens.split
         }
     }
 
