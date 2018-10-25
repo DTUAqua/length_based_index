@@ -1,4 +1,4 @@
-SETTING <- 1
+SETTING <- 20
 
 ## For scripting - replace SETTING
 input <- parse(text=Sys.getenv("SCRIPT_INPUT"))
@@ -91,7 +91,6 @@ setting = SETTING
         
         sel=which(is.na(dQ14[[1]]$stock) & !is.na(dQ14[[1]]$Age))
         
-        
         xtabs(NoAtALK ~ Year + Age + Quarter,data=dQ14[[1]]) ##OK
         xtabs(!is.na(Age) ~ Year + Age + Quarter,data=dQ14[[1]]) ##OK
         xtabs(is.na(stock) ~ Year + Age + Quarter,data=dQ14[[1]])
@@ -103,9 +102,10 @@ setting = SETTING
         
         probw=predict(splitModels[[modelnr]],newdata=dQ14[[1]][sel,],type="response")
         dQ14[[1]][sel,"ProbWest"]=probw
-        if(settings$soft==2){
+        if(settings$soft[setting]==2){
             dQ14[[1]]$ProbWest[ as.numeric(as.character(dQ14[[1]]$ICES_SUB)) > 24 ] = 0
             dQ14[[1]]$ProbWest[ as.numeric(as.character(dQ14[[1]]$ICES_SUB)) < 24 ] = 1
+            dQ14[[1]]=subset(dQ14[[1]],ProbWest>0.05)
         }    
         xtabs(is.na(ProbWest) ~ Year + Age + Quarter,data=dQ14[[1]]) ## all are now NA!
         xtabs(!is.na(ProbWest) ~ Year + Age + Quarter,data=dQ14[[1]]) ## all are now NA!

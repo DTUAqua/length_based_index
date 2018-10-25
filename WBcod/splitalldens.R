@@ -1,5 +1,5 @@
 ##
-MODELNR <- 1
+MODELNR <- 10
 
 ## For scripting - replace MODELNR
 input <- parse(text=Sys.getenv("SCRIPT_INPUT"))

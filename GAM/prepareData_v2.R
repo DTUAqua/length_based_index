@@ -213,7 +213,31 @@ for(lg in 1:ncol(dQ14$N)){
 }
 pvecs[[3]]<-pvec
 
+#### WB cod (soft)
+load("~/Documents/DTUAqua/length_based_index/WBcod/alldenssplit-10.RData")
+pvec=array(NA,dim=c(ncol(dQ14$N),nrow(EBarea.s),length(unique(dQ14$ctime))))
+for(lg in 1:ncol(dQ14$N)){
+    for(ct in 1:length(unique(dQ14$ctime))){
+        pvec[lg,,ct] = alldens.split[,ct,lg]
+    }
+}
+pvecs[[4]]<-pvec
 
+
+
+## WB cod (penkowa)
+sel = which(as.numeric(as.character(EBarea.s$ICES_SUB))>24)
+sel2 = which(as.numeric(as.character(EBarea.s$ICES_SUB))<24)
+for(lg in 1:ncol(dQ14$N)){
+    for(ct in 1:length(unique(dQ14$ctime))){
+        pvec[lg,sel,ct] = 0
+        pvec[lg,sel2,ct] = 1
+    }
+}
+pvecs[[5]]<-pvec
+
+## EB cod (penkowa)
+pvecs[[6]]<-1-pvec
 
 save(dQ14,EBarea.s,pvecs,coastlines,file="../EBcodProcessedData.RData")
 
@@ -222,7 +246,9 @@ my.palette<-colorRampPalette(c("darkblue","mediumblue","lightblue1"))
 my.palette.vec=my.palette(100);
 plot(EBarea.s$utm.x,EBarea.s$utm.y,col=rev(my.palette.vec)[cut(EBarea.s$Depth,100)],pch=16,cex=0.5)
 
+plot(EBarea.s$utm.x,EBarea.s$utm.y,col=rev(my.palette.vec)[cut(pvecs[[5]][10,,10],100)],pch=16,cex=0.5)
 
-plot(WBEBarea.s$utm.x,WBEBarea.s$utm.y,col=rev(my.palette.vec)[cut(WBEBarea.s$Depth,100)],pch=16,cex=0.5)
+
+##plot(WBEBarea.s$utm.x,WBEBarea.s$utm.y,col=rev(my.palette.vec)[cut(WBEBarea.s$Depth,100)],pch=16,cex=0.5)
 
 ###
