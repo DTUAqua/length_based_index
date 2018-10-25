@@ -24,7 +24,7 @@ Type objective_function<Type>::operator() ()
   /* Fixed effects */
   PARAMETER          (logdelta); /* For random field (corr) */
   PARAMETER          (logkappa); /* For random field (scale) */
-  PARAMETER          (tphi_time);/* One-step time correlation */
+  PARAMETER_VECTOR   (tphi_time);/* One-step time correlation */
   PARAMETER          (tphi_size);/* One-step time correlation */
   PARAMETER          (logsigma); /* Nugget error */
   PARAMETER_VECTOR   (beta);     /* For design matrix */
@@ -38,13 +38,22 @@ Type objective_function<Type>::operator() ()
   Type delta = exp(logdelta);
   Type kappa = exp(logkappa);
   Type sigma = exp(logsigma);
-  Type phi_time = tphi_time / sqrt( 1.0 + tphi_time * tphi_time );
+  vector<Type> pc_time = tphi_time / sqrt( 1.0 + tphi_time * tphi_time );
   Type phi_size = tphi_size / sqrt( 1.0 + tphi_size * tphi_size );
+  /* Partial corr -> phi */
+  vector<Type> gamma(3);
+  gamma <<
+    Type(1),
+    pc_time[0],
+    (1-pc_time[0]*pc_time[0])*pc_time[1]+pc_time[0]*pc_time[0];
+  matrix<Type> M(2, 2);
+  M << gamma[0], gamma[1], gamma[1], gamma[0];
+  vector<Type> phi_time = atomic::matinv(M) * gamma.tail(2).matrix();
 
   /* Random fields */
   SparseMatrix<Type> Q = kappa * (Q0 + delta * I);
   GMRF_t<Type>      nldens_spatial = GMRF(Q);
-  AR1_t<N01<Type> > nldens_time    = AR1(phi_time);
+  ARk_t<Type>       nldens_time(phi_time);
   AR1_t<N01<Type> > nldens_size    = AR1(phi_size);
 
   Type nll = 0; // Negative log likelhood
@@ -93,6 +102,8 @@ Type objective_function<Type>::operator() ()
   ADREPORT(logindex);
   REPORT(logindex);
   REPORT(dens);
+  REPORT(nldens_time.cov(100));
+  REPORT(phi_time);
 
   return nll;
 

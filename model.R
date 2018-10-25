@@ -145,7 +145,7 @@ obj <- MakeADFun(
     parameters=list(
         logdelta= 0 ,
         logkappa= 0 ,
-        tphi_time= 0 ,
+        tphi_time= c(0.01, 0.8) ,
         tphi_size = 0 ,
         logsigma= 0 ,
         beta= beta ,
