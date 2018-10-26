@@ -9,6 +9,7 @@ MAXYEAR  <- 2018
 BY       <- 1
 CMGROUP <- MINSIZE+1
 DATFILE  <- "EBcodProcessedData.RData"
+PVECFILE <- "pvecs.RData"
 OUTFILE  <- paste0("results", QUARTER,"-cm",CMGROUP,".RData")
 
 ## For scripting
@@ -33,7 +34,7 @@ stopifnot( class(area) == "data.frame" )
 
 ## Integration weights
 pvecs <- local({
-    load(DATFILE)
+    load(PVECFILE)
     pvecs
 })
 stopifnot( class(pvecs) == "list" )

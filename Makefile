@@ -61,3 +61,6 @@ publish: all_anim all_post
 wget-results:
 	wget http://www.student.dtu.dk/~kaskr/EBcod_results.zip
 	unzip EBcod_results.zip
+
+wget-pvecs:
+	wget https://www.stockassessment.org/datadisk/stockassessment/userdirs/user1/BalticCod/pvecs.RData

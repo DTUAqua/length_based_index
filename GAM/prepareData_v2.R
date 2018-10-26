@@ -223,8 +223,6 @@ for(lg in 1:ncol(dQ14$N)){
 }
 pvecs[[4]]<-pvec
 
-
-
 ## WB cod (penkowa)
 sel = which(as.numeric(as.character(EBarea.s$ICES_SUB))>24)
 sel2 = which(as.numeric(as.character(EBarea.s$ICES_SUB))<24)
@@ -239,8 +237,8 @@ pvecs[[5]]<-pvec
 ## EB cod (penkowa)
 pvecs[[6]]<-1-pvec
 
-save(dQ14,EBarea.s,pvecs,coastlines,file="../EBcodProcessedData.RData")
-
+save(dQ14,EBarea.s,coastlines,file="../EBcodProcessedData.RData")
+save(pvecs,file="../pvecs.RData")
 ###
 my.palette<-colorRampPalette(c("darkblue","mediumblue","lightblue1"))
 my.palette.vec=my.palette(100);
