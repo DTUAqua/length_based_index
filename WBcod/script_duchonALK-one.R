@@ -1,4 +1,4 @@
-SETTING <- 20
+SETTING <- 22
 
 ## For scripting - replace SETTING
 input <- parse(text=Sys.getenv("SCRIPT_INPUT"))
@@ -16,7 +16,7 @@ load("splitModels.RData")
 
 baselines=c(rep(0,5),rep(1,4))
 ##settings = data.frame( modelnr = c(1:9,1:9,-1), baseline=c(rep(baselines,2),-1), fixedSplit=c(rep(NA,18),13), soft=c(rep(1,9),rep(0,9),0))
-settings = data.frame( modelnr = c(1:9,1:9,-1,2), baseline=c(rep(baselines,2),-1,0), fixedSplit=c(rep(NA,18),13,NA), soft=c(rep(1,9),rep(0,9),0,2))
+settings = data.frame( modelnr = c(1:9,1:9,-1,2,10,10), baseline=c(rep(baselines,2),-1,0,2,2), fixedSplit=c(rep(NA,18),13,NA,NA,NA), soft=c(rep(1,9),rep(0,9),0,2,2,1))
 
 dQ14$yqf = factor(paste(dQ14$Year, dQ14$Quarter,sep=":"))
 Q1files <- dir("../anim", pattern=glob2rx("*Q1*.RData"),full=TRUE)
@@ -44,6 +44,7 @@ setting = SETTING
         sp2<-read.table("BITS1992_2017_baseline.txt",header=TRUE)
         
         if(settings$baseline[setting]==1) sp2<-read.table("BITS1992_2017_baseline_juv.txt",header=TRUE)
+        if(settings$baseline[setting]==2) sp2<-read.table("~/Documents/EBcod/EWsplit/updatedDataBeforeDataMeeting/BITS1992_2017_baseline_juv18.txt",header=TRUE)
         
         sp2$day <- as.numeric( unlist( lapply( sp2$capture_date, substr, start=7,stop=8) ) )
         sp2$rn <- 1:nrow(sp2)

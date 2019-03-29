@@ -9,7 +9,7 @@ datafile="../EBcod.RData"
 if(!file.exists(datafile)){
     
     sti="~/Documents/DATRAS";
-    years=1991:2018
+    years=1991:2019
     genus="Gadus"
     bfamily="morhua";
     
@@ -71,7 +71,7 @@ dQ14$HaulDur[ dQ14$HaulDur<5 | is.na(dQ14$HaulDur) ] = 10
 
 ## Get depth database :Download link
 ## http://data.bshc.pro/ogc/bsbd-0.9.3?SERVICE=wcs&VERSION=1.0.0&REQUEST=GetCoverage&coverage=bsbd&CRS=EPSG:4326&bbox=7.274582044420753,53.09571677875055,24.780872897306068,58.88722383749357&width=2174&height=1289&format=XYZ
-bathy <- read.table("~/Desktop/bathy/bsbd-0.9.3.xyz")
+bathy <- read.table("~/Documents/bathy/bsbd-0.9.3.xyz")
 bathy$V3[ bathy$V3 > 0 ] = 0 ## not interested in land
 
 depthLookup<-function(lon,lat, bathy){ 
@@ -213,38 +213,40 @@ for(lg in 1:ncol(dQ14$N)){
 }
 pvecs[[3]]<-pvec
 
-#### WB cod (soft)
-load("~/Documents/DTUAqua/length_based_index/WBcod/alldenssplit-10.RData")
-pvec=array(NA,dim=c(ncol(dQ14$N),nrow(EBarea.s),length(unique(dQ14$ctime))))
-for(lg in 1:ncol(dQ14$N)){
-    for(ct in 1:length(unique(dQ14$ctime))){
-        pvec[lg,,ct] = alldens.split[,ct,lg]
+if(FALSE){
+    ## WB cod (soft)
+    load("~/Documents/DTUAqua/length_based_index/WBcod/alldenssplit-10.RData")
+    pvec=array(NA,dim=c(ncol(dQ14$N),nrow(EBarea.s),length(unique(dQ14$ctime))))
+    for(lg in 1:ncol(dQ14$N)){
+        for(ct in 1:length(unique(dQ14$ctime))){
+            pvec[lg,,ct] = alldens.split[,ct,lg]
+        }
     }
-}
-pvecs[[4]]<-pvec
-
-## WB cod (penkowa)
-sel = which(as.numeric(as.character(EBarea.s$ICES_SUB))>24)
-sel2 = which(as.numeric(as.character(EBarea.s$ICES_SUB))<24)
-for(lg in 1:ncol(dQ14$N)){
-    for(ct in 1:length(unique(dQ14$ctime))){
-        pvec[lg,sel,ct] = 0
-        pvec[lg,sel2,ct] = 1
+    pvecs[[4]]<-pvec
+    
+    ## WB cod (penkowa)
+    sel = which(as.numeric(as.character(EBarea.s$ICES_SUB))>24)
+    sel2 = which(as.numeric(as.character(EBarea.s$ICES_SUB))<24)
+    for(lg in 1:ncol(dQ14$N)){
+        for(ct in 1:length(unique(dQ14$ctime))){
+            pvec[lg,sel,ct] = 0
+            pvec[lg,sel2,ct] = 1
+        }
     }
+    pvecs[[5]]<-pvec
+    
+    ## EB cod (penkowa)
+    pvecs[[6]]<-1-pvec
 }
-pvecs[[5]]<-pvec
-
-## EB cod (penkowa)
-pvecs[[6]]<-1-pvec
 
 save(dQ14,EBarea.s,coastlines,file="../EBcodProcessedData.RData")
 save(pvecs,file="../pvecs.RData")
 ###
 my.palette<-colorRampPalette(c("darkblue","mediumblue","lightblue1"))
 my.palette.vec=my.palette(100);
-plot(EBarea.s$utm.x,EBarea.s$utm.y,col=rev(my.palette.vec)[cut(EBarea.s$Depth,100)],pch=16,cex=0.5)
+##plot(EBarea.s$utm.x,EBarea.s$utm.y,col=rev(my.palette.vec)[cut(EBarea.s$Depth,100)],pch=16,cex=0.5)
 
-plot(EBarea.s$utm.x,EBarea.s$utm.y,col=rev(my.palette.vec)[cut(pvecs[[5]][10,,10],100)],pch=16,cex=0.5)
+##plot(EBarea.s$utm.x,EBarea.s$utm.y,col=rev(my.palette.vec)[cut(pvecs[[5]][10,,10],100)],pch=16,cex=0.5)
 
 
 ##plot(WBEBarea.s$utm.x,WBEBarea.s$utm.y,col=rev(my.palette.vec)[cut(WBEBarea.s$Depth,100)],pch=16,cex=0.5)
