@@ -2,8 +2,8 @@
 
 ## Use parallel BLAS for all runs
 export OMP_NUM_THREADS=2
-export MAX_DURATION=01:00:00:00
-export MAX_MEMORY=35gb
+export MAX_DURATION=24:00
+export MAX_MEMORY=35GB
 export QUEUE=hpc
 
 FIRST_LENGTH_GROUP = 1

@@ -9,7 +9,7 @@ FIRST_LENGTH_GROUP = 1
 LAST_LENGTH_GROUP = 9
 
 FIRST_SETTING = 1
-LAST_SETTING = 19
+LAST_SETTING = 20
 
 lengthgroups:= $(shell echo 'cat(formatC($(FIRST_LENGTH_GROUP):$(LAST_LENGTH_GROUP), digits=3, flag="0"))' | R --slave)
 resultsfiles:=$(foreach cm,$(lengthgroups),alldenssplit-$(cm).RData)
