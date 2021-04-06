@@ -9,7 +9,7 @@ datafile="../EBcod.RData"
 if(!file.exists(datafile)){
     
     sti="~/Documents/DATRAS";
-    years=1991:2020
+    years=1991:2021
     genus="Gadus"
     bfamily="morhua";
     
@@ -239,8 +239,8 @@ if(FALSE){
     pvecs[[6]]<-1-pvec
 }
 
-save(dQ14,EBarea.s,coastlines,file="../EBcodProcessedData.RData")
-save(pvecs,file="../pvecs.RData")
+save(dQ14,EBarea.s,coastlines,file="../EBcodProcessedData.RData",version=2)
+save(pvecs,file="../pvecs.RData",version=2)
 ###
 my.palette<-colorRampPalette(c("darkblue","mediumblue","lightblue1"))
 my.palette.vec=my.palette(100);
