@@ -9,7 +9,7 @@ datafile="../EBcod.RData"
 if(!file.exists(datafile)){
     
     sti="~/Documents/DATRAS";
-    years=1991:2022
+    years=1991:2023
     genus="Gadus"
     bfamily="morhua";
     
