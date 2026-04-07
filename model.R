@@ -5,7 +5,7 @@ KM       <- 6
 MINSIZE  <- 4
 MAXSIZE  <- 120
 MINYEAR  <- 1991
-MAXYEAR  <- 2025
+MAXYEAR  <- 2026
 BY       <- 1
 CMGROUP <- MINSIZE+1
 DATFILE  <- "EBcodProcessedData.RData"
